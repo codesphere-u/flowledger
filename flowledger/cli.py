@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import sys
 from typing import Any
@@ -12,6 +13,7 @@ from flowledger.payments.orchestrator import PaymentOrchestrator
 from flowledger.providers.sandbox import FailureInjectionSimulator, FailureScenario
 from flowledger.reconciliation.engine import (
     ReconciliationReport,
+    ReconciliationStatus,
     ThreeWayReconciliationEngine,
 )
 
@@ -159,8 +161,32 @@ def format_demo_report(sim_result: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def export_reconciliation_csv(report: ReconciliationReport, path: str) -> None:
+    """Write one row per exception, preserving complete proposals as JSON cells."""
+    fields = [
+        "payment_id", "provider", "currency", "status", "order_state", "order_amount",
+        "ledger_settled_amount", "ledger_provider_fee", "provider_gross_amount",
+        "provider_fee_amount", "discrepancy_delta", "explanation", "adjustment_proposal",
+    ]
+    with open(path, "w", encoding="utf-8", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=fields)
+        writer.writeheader()
+        for item in report.items:
+            if item.status == ReconciliationStatus.MATCHED:
+                continue
+            row = item.to_dict()
+            row["adjustment_proposal"] = json.dumps(row["adjustment_proposal"], ensure_ascii=False)
+            writer.writerow(row)
+
+
 def cmd_demo(args: argparse.Namespace) -> int:
     sim_result = run_synthetic_simulation(total_transactions=args.count)
+    if args.export_csv:
+        try:
+            export_reconciliation_csv(sim_result["reconciliation"], args.export_csv)
+        except OSError as exc:
+            print(f"Could not export CSV to {args.export_csv}: {exc}", file=sys.stderr)
+            return 1
     if args.json:
         print(
             json.dumps(
@@ -222,6 +248,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_demo.add_argument("--count", type=int, default=50, help="Number of synthetic transactions")
     p_demo.add_argument("--json", action="store_true", help="Emit JSON output")
+    p_demo.add_argument(
+        "--export-csv", metavar="PATH", help="Write reconciliation exceptions and proposals to CSV"
+    )
     p_demo.set_defaults(func=cmd_demo)
 
     p_verify = sub.add_parser(

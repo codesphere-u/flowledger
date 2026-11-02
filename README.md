@@ -62,6 +62,13 @@ flowchart LR
 uv run --with fastapi --with httpx --with pydantic python -m flowledger.cli demo
 ```
 
+Add `--export-csv audit.csv` to save every non-matched reconciliation item while
+keeping the terminal report (or combine it with `--json`). The UTF-8 CSV includes
+all item fields; the `adjustment_proposal` column contains the complete proposal
+as JSON, including proposed postings, or `null` when there is none. Monetary
+amounts stay in integer minor units. A batch with no exceptions writes only the
+header. The destination directory must exist; an export error returns exit code 1.
+
 ### 2. Verify Mathematical Zero-Sum & Hash-Chain Invariants
 
 ```bash
