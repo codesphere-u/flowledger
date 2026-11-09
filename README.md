@@ -68,6 +68,14 @@ flowchart LR
 
 ---
 
+## Install
+
+```bash
+pip install "git+https://github.com/codesphere-u/flowledger.git@v2.0.0"
+# PyPI release (pip install flowledger) is configured; see .github/workflows/publish.yml
+python -c "import flowledger; print(flowledger.__version__)"
+```
+
 ## Quickstart
 
 ### 1. Run the 50-Transaction East African Mobile Money Simulation & Audit

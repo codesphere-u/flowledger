@@ -38,6 +38,12 @@ dev = [
 [project.scripts]
 flowledger = "flowledger.cli:main"
 
+[project.urls]
+Homepage = "https://github.com/codesphere-u/flowledger"
+Repository = "https://github.com/codesphere-u/flowledger"
+Issues = "https://github.com/codesphere-u/flowledger/issues"
+Changelog = "https://github.com/codesphere-u/flowledger/blob/main/CHANGELOG.md"
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
