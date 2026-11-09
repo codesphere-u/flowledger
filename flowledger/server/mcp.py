@@ -12,6 +12,11 @@ from flowledger.ledger.engine import LedgerEngine
 from flowledger.ledger.models import Currency
 from flowledger.payments.orchestrator import PaymentOrchestrator
 from flowledger.payments.split import EscrowManager, SplitRecipient, SplitRule
+from flowledger.compliance import SanctionsScreener
+from flowledger.ledger.merkle import ledger_merkle_root
+from flowledger.payments.fx import FxEngine
+from flowledger.providers import mpesa
+from flowledger.reconciliation import iso20022
 
 MCP_TOOLS_SPEC: List[Dict[str, Any]] = [
     {
@@ -95,6 +100,69 @@ MCP_TOOLS_SPEC: List[Dict[str, Any]] = [
             },
         },
     },
+    {
+        "name": "flowledger_build_mpesa_stk_push",
+        "description": "Build a Safaricom Daraja M-Pesa Express (STK Push) request body from KES minor units. Offline: does not call Safaricom.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "shortcode": {"type": "string"},
+                "passkey": {"type": "string"},
+                "timestamp": {"type": "string", "description": "YYYYMMDDHHMMSS"},
+                "amount_minor": {"type": "integer", "description": "KES cents; must be a multiple of 100"},
+                "msisdn": {"type": "string"},
+                "callback_url": {"type": "string"},
+                "account_reference": {"type": "string"},
+            },
+            "required": ["shortcode", "passkey", "timestamp", "amount_minor", "msisdn", "callback_url", "account_reference"],
+        },
+    },
+    {
+        "name": "flowledger_fx_quote",
+        "description": "Create a rate-locked cross-border FX quote and optionally execute it as two balanced single-currency journals.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "source": {"type": "string"},
+                "target": {"type": "string"},
+                "source_amount": {"type": "integer"},
+                "rate_micro": {"type": "integer", "description": "target minor units per 1,000,000 source minor units"},
+                "spread_bps": {"type": "integer", "default": 100},
+                "execute": {"type": "boolean", "default": False},
+            },
+            "required": ["source", "target", "source_amount", "rate_micro"],
+        },
+    },
+    {
+        "name": "flowledger_generate_pacs008",
+        "description": "Generate an ISO 20022 pacs.008 credit transfer XML message (pragmatic subset, not certified).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "message_id": {"type": "string"},
+                "end_to_end_id": {"type": "string"},
+                "amount_minor": {"type": "integer"},
+                "currency": {"type": "string"},
+                "debtor_name": {"type": "string"},
+                "debtor_agent_bic": {"type": "string"},
+                "creditor_name": {"type": "string"},
+                "creditor_agent_bic": {"type": "string"},
+                "remittance_info": {"type": "string", "default": ""},
+            },
+            "required": ["message_id", "end_to_end_id", "amount_minor", "currency", "debtor_name",
+                         "debtor_agent_bic", "creditor_name", "creditor_agent_bic"],
+        },
+    },
+    {
+        "name": "flowledger_screen_name",
+        "description": "Fuzzy-screen a name against the loaded sanctions/PEP watchlist (bundled list is synthetic). Returns risk signals only.",
+        "inputSchema": {"type": "object", "properties": {"name": {"type": "string"}}, "required": ["name"]},
+    },
+    {
+        "name": "flowledger_merkle_root",
+        "description": "Compute the RFC 6962 Merkle root over all ledger entry hashes.",
+        "inputSchema": {"type": "object", "properties": {}},
+    },
 ]
 
 
@@ -120,7 +188,7 @@ class FlowLedgerMCPServer:
                     req_id,
                     {
                         "protocolVersion": "2024-11-05",
-                        "serverInfo": {"name": "flowledger-mcp", "version": "1.1.0"},
+                        "serverInfo": {"name": "flowledger-mcp", "version": "2.0.0"},
                         "capabilities": {"tools": {"listChanged": False}},
                     },
                 )
@@ -259,6 +327,44 @@ class FlowLedgerMCPServer:
                 task_id=task_id,
             )
             return leaf
+
+        if tool_name == "flowledger_build_mpesa_stk_push":
+            return mpesa.build_stk_push(
+                shortcode=str(args["shortcode"]), passkey=str(args["passkey"]),
+                timestamp=str(args["timestamp"]), amount_minor=args["amount_minor"],
+                msisdn=str(args["msisdn"]), callback_url=str(args["callback_url"]),
+                account_reference=str(args["account_reference"]),
+            )
+
+        if tool_name == "flowledger_fx_quote":
+            fx = FxEngine(self.orchestrator.ledger)
+            q = fx.quote(args["source"], args["target"], args["source_amount"],
+                         rate_micro=args["rate_micro"], spread_bps=args.get("spread_bps", 100))
+            out = {k: (v.value if hasattr(v, "value") else v) for k, v in q.__dict__.items()}
+            if args.get("execute"):
+                out["entry_ids"] = list(fx.execute(q.quote_id))
+            return out
+
+        if tool_name == "flowledger_generate_pacs008":
+            msg = iso20022.Pacs008(
+                message_id=str(args["message_id"]), end_to_end_id=str(args["end_to_end_id"]),
+                amount_minor=args["amount_minor"], currency=Currency(args["currency"]),
+                debtor_name=str(args["debtor_name"]), debtor_agent_bic=str(args["debtor_agent_bic"]),
+                creditor_name=str(args["creditor_name"]), creditor_agent_bic=str(args["creditor_agent_bic"]),
+                remittance_info=str(args.get("remittance_info", "")),
+            )
+            return {"xml": iso20022.generate_pacs008(msg)}
+
+        if tool_name == "flowledger_screen_name":
+            hits = SanctionsScreener().screen(str(args["name"]))
+            return {"match": bool(hits), "hits": [
+                {"name": h.entry.name, "list": h.entry.list_name, "category": h.entry.category, "score": h.score}
+                for h in hits]}
+
+        if tool_name == "flowledger_merkle_root":
+            entries = self.orchestrator.ledger.list_entries()
+            return {"entries": len(entries),
+                    "merkle_root": ledger_merkle_root([e.entry_hash for e in entries])}
 
         raise ValueError(f"Unknown tool: {tool_name}")
 

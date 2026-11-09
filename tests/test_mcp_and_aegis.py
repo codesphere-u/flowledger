@@ -64,7 +64,7 @@ def test_mcp_server_initialize_ping_and_tools_list() -> None:
 
     init_resp = server.handle_request({"jsonrpc": "2.0", "id": 1, "method": "initialize"})
     assert init_resp["result"]["serverInfo"]["name"] == "flowledger-mcp"
-    assert init_resp["result"]["serverInfo"]["version"] == "1.1.0"
+    assert init_resp["result"]["serverInfo"]["version"] == "2.0.0"
 
     ping_resp = server.handle_request({"jsonrpc": "2.0", "id": 2, "method": "ping"})
     assert ping_resp["result"]["status"] == "pong"
@@ -72,6 +72,11 @@ def test_mcp_server_initialize_ping_and_tools_list() -> None:
     tools_resp = server.handle_request({"jsonrpc": "2.0", "id": 3, "method": "tools/list"})
     names = {t["name"] for t in tools_resp["result"]["tools"]}
     assert names == {
+        "flowledger_build_mpesa_stk_push",
+        "flowledger_fx_quote",
+        "flowledger_generate_pacs008",
+        "flowledger_screen_name",
+        "flowledger_merkle_root",
         "flowledger_create_payment",
         "flowledger_get_account_balance",
         "flowledger_verify_ledger_invariants",

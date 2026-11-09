@@ -2,6 +2,24 @@
 
 All notable changes to **FlowLedger** are documented in this file.
 
+## [2.0.0] - 2026-11-09
+
+### Added
+- **Safaricom M-Pesa Daraja builders/parsers** (`providers/mpesa.py`): STK Push request (spec-conformant Base64 password), STK callback, C2B validation/confirmation, B2C payout. Offline only; whole-shilling rule enforced on KES minor units.
+- **Regional wallet profiles** (`providers/regional.py`): M-Pesa, Wave, Orange Money (XOF/XAF), MTN GH/RW, Tigo Pesa TZ with simulated fee tiers; simulated USDC/EURC rail.
+- **New currencies**: GHS, ZAR, TZS, RWF, XOF, XAF, USDC, EURC.
+- **ISO 20022 pacs.008 / pacs.002** generator and parser (`reconciliation/iso20022.py`), with pacs.002 status to payment-state mapping.
+- **Cross-border FX engine** (`payments/fx.py`): integer-only rate-locked quotes, single-use, expiry, two balanced single-currency journals with spread revenue.
+- **Offline signed vouchers** (`payments/offline_voucher.py`): HMAC-SHA256 vouchers, replay and stale-nonce protection, bulk settlement queue.
+- **Compliance** (`compliance/`): Jaro-Winkler sanctions/PEP screening and sliding-window velocity + structuring detection (bundled watchlist is synthetic).
+- **Durable storage** (`ledger/storage.py`): SQLite WAL store, append-only triggers, hash-verified restore.
+- **Merkle audit proofs** (`ledger/merkle.py`): RFC 6962 root and inclusion proofs.
+- **5 new MCP tools**: STK push builder, FX quote, pacs.008, name screening, Merkle root.
+- 28 new tests (94 total).
+
+### Changed
+- MCP server version and package version bumped to 2.0.0.
+
 ## [1.1.0] - 2026-11-09
 
 ### Added

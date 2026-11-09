@@ -19,6 +19,14 @@ class Currency(str, Enum):
     KES = "KES"
     NGN = "NGN"
     USD = "USD"
+    GHS = "GHS"
+    ZAR = "ZAR"
+    TZS = "TZS"
+    RWF = "RWF"
+    XOF = "XOF"  # West African CFA franc (Wave, Orange Money)
+    XAF = "XAF"  # Central African CFA franc
+    USDC = "USDC"  # Stablecoin settlement unit (6 decimals; minor unit = 1e-6)
+    EURC = "EURC"
 
 
 class AccountType(str, Enum):

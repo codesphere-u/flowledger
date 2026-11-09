@@ -14,9 +14,26 @@ from flowledger.reconciliation.engine import (
     ThreeWayReconciliationEngine,
 )
 
-__version__ = "1.1.0"
+from flowledger.compliance import SanctionsScreener, VelocityMonitor
+from flowledger.ledger.merkle import inclusion_proof, merkle_root, verify_inclusion
+from flowledger.ledger.storage import SqliteLedgerStore
+from flowledger.payments.fx import FxEngine
+from flowledger.payments.offline_voucher import OfflineSettlementQueue, Voucher, sign_voucher, verify_voucher
+
+__version__ = "2.0.0"
 
 __all__ = [
+    "FxEngine",
+    "OfflineSettlementQueue",
+    "SanctionsScreener",
+    "SqliteLedgerStore",
+    "VelocityMonitor",
+    "Voucher",
+    "inclusion_proof",
+    "merkle_root",
+    "sign_voucher",
+    "verify_inclusion",
+    "verify_voucher",
     "Account",
     "AccountType",
     "AdjustmentProposal",

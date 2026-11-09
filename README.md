@@ -35,6 +35,18 @@
 
 ---
 
+## What's New in v2.0
+
+- **Pan-African rails**: Safaricom M-Pesa Daraja (STK Push, C2B, B2C) payload builders/parsers; Wave, Orange Money, MTN GH/RW, Tigo TZ profiles; new currencies `GHS ZAR TZS RWF XOF XAF USDC EURC`.
+- **ISO 20022** `pacs.008` / `pacs.002` generate + parse alongside CAMT.053.
+- **Cross-border FX**: rate-locked, single-use quotes posted as balanced journals with spread revenue.
+- **Offline vouchers**: HMAC-signed, replay- and nonce-protected, bulk settlement queue.
+- **Compliance**: fuzzy sanctions/PEP screening and structuring/velocity detection.
+- **Durability & audit**: SQLite WAL store with hash-verified restore; RFC 6962 Merkle inclusion proofs.
+- **MCP**: 12 tools for AI agents.
+
+> Provider modules build and parse payloads offline; they do not call live APIs. See [Limitations](docs/limitations.md) for exactly what is and isn't production-ready.
+
 ## System Architecture
 
 ```mermaid
@@ -76,7 +88,7 @@ uv run --with fastapi --with uvicorn --with httpx --with pydantic python -m flow
 
 Open `http://127.0.0.1:8095` to inspect live double-entry accounts, inject webhook anomalies, and run 3-way reconciliation in real time.
 
-### 4. Run the Test Suite (40+ Unit, Invariant, Security & API Tests)
+### 4. Run the Test Suite (94 Unit, Invariant, Security & API Tests)
 
 ```bash
 uv run --with pytest --with fastapi --with httpx --with pydantic pytest -v
@@ -87,6 +99,7 @@ uv run --with pytest --with fastapi --with httpx --with pydantic pytest -v
 ## Documentation Index
 
 - [Architecture & Data Flow](docs/architecture.md)
+- [v2.0 Architecture Additions](docs/v2-architecture.md)
 - [ADR-001: Integer Minor Units & Double-Entry Invariants](docs/decisions/001-integer-minor-units-and-double-entry-invariants.md)
 - [Testing & Verification Guide](docs/testing.md)
 - [Operational Scope & Known Limitations](docs/limitations.md)
