@@ -1,5 +1,6 @@
 """Automated 3-Way Reconciliation Pipeline."""
 
+from flowledger.reconciliation.camt053 import Camt053ParseError, Camt053Parser
 from flowledger.reconciliation.engine import (
     AdjustmentProposal,
     ReconciliationItem,
@@ -10,6 +11,8 @@ from flowledger.reconciliation.engine import (
 
 __all__ = [
     "AdjustmentProposal",
+    "Camt053ParseError",
+    "Camt053Parser",
     "ReconciliationItem",
     "ReconciliationReport",
     "ReconciliationStatus",

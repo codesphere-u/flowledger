@@ -4,13 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "flowledger"
-version = "1.0.0"
+version = "1.1.0"
 description = "African Payment Orchestration & Immutable Double-Entry Reconciliation Engine"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [
-    { name = "Desire B", email = "desire@codesphere.ug" }
+    { name = "Akandwanaho Ivan Alvin", email = "codesphere-u@users.noreply.github.com" },
+    { name = "Codesphere Innovations (U) Limited", email = "info@codesphereug.com" }
 ]
 keywords = [
     "fintech",

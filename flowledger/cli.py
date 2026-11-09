@@ -161,7 +161,25 @@ def format_demo_report(sim_result: dict[str, Any]) -> str:
 
 def cmd_demo(args: argparse.Namespace) -> int:
     sim_result = run_synthetic_simulation(total_transactions=args.count)
-    if args.json:
+    recon = sim_result["reconciliation"]
+
+    if getattr(args, "export_csv", None):
+        csv_content = ThreeWayReconciliationEngine.export_reconciliation_csv(recon)
+        with open(args.export_csv, "w", encoding="utf-8") as f:
+            f.write(csv_content)
+        print(f"[CSV Export] Saved full 3-way reconciliation to: {args.export_csv}")
+
+    if getattr(args, "export_exceptions_csv", None):
+        exc_content = ThreeWayReconciliationEngine.export_exceptions_csv(recon)
+        with open(args.export_exceptions_csv, "w", encoding="utf-8") as f:
+            f.write(exc_content)
+        print(f"[CSV Export] Saved reconciliation exceptions to: {args.export_exceptions_csv}")
+
+    if getattr(args, "csv", False):
+        print(ThreeWayReconciliationEngine.export_reconciliation_csv(recon))
+    elif getattr(args, "exceptions_csv", False):
+        print(ThreeWayReconciliationEngine.export_exceptions_csv(recon))
+    elif args.json:
         print(
             json.dumps(
                 {
@@ -174,6 +192,34 @@ def cmd_demo(args: argparse.Namespace) -> int:
     else:
         print(format_demo_report(sim_result))
     return 0 if sim_result["invariants"].is_valid else 1
+
+
+def cmd_export_aegis(args: argparse.Namespace) -> int:
+    from flowledger.aegis_bridge import create_aegis_financial_leaf
+
+    sim_result = run_synthetic_simulation(total_transactions=args.count)
+    leaf = create_aegis_financial_leaf(
+        invariant_report=sim_result["invariants"],
+        recon_report=sim_result["reconciliation"],
+        task_id=args.task_id,
+    )
+    if args.json:
+        print(json.dumps(leaf, indent=2))
+    else:
+        print("FLOWLEDGER NEXUS AEGIS ATTESTATION LEAF")
+        print("-" * 72)
+        print(f"Gate ID        : {leaf['payload']['gate_id']}")
+        print(f"Passed         : {leaf['payload']['passed']} (Score: {leaf['payload']['score']})")
+        print(f"Leaf SHA-256   : {leaf['leaf_hash']}")
+        print(f"RFC 6962 Prefix: {leaf['rfc6962_prefix']}")
+    return 0 if leaf["payload"]["passed"] else 1
+
+
+def cmd_mcp(args: argparse.Namespace) -> int:  # pragma: no cover
+    from flowledger.server.mcp import FlowLedgerMCPServer
+
+    FlowLedgerMCPServer().serve_stdio()
+    return 0
 
 
 def cmd_verify_invariants(args: argparse.Namespace) -> int:
@@ -222,7 +268,31 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p_demo.add_argument("--count", type=int, default=50, help="Number of synthetic transactions")
     p_demo.add_argument("--json", action="store_true", help="Emit JSON output")
+    p_demo.add_argument("--csv", action="store_true", help="Emit full reconciliation table as CSV")
+    p_demo.add_argument("--exceptions-csv", action="store_true", help="Emit reconciliation exceptions as CSV")
+    p_demo.add_argument("--export-csv", type=str, default=None, help="File path to save full reconciliation CSV")
+    p_demo.add_argument(
+        "--export-exceptions-csv",
+        type=str,
+        default=None,
+        help="File path to save reconciliation exceptions CSV",
+    )
     p_demo.set_defaults(func=cmd_demo)
+
+    p_aegis = sub.add_parser(
+        "export-aegis",
+        help="Export canonical Nexus Aegis G6 financial attestation leaf with RFC 6962 SHA-256 digest",
+    )
+    p_aegis.add_argument("--count", type=int, default=50, help="Number of synthetic transactions")
+    p_aegis.add_argument("--task-id", type=str, default="flowledger_financial_audit", help="Attestation task ID")
+    p_aegis.add_argument("--json", action="store_true", default=True, help="Emit JSON output")
+    p_aegis.set_defaults(func=cmd_export_aegis)
+
+    p_mcp = sub.add_parser(
+        "mcp",
+        help="Start Model Context Protocol (MCP) JSON-RPC 2.0 server over stdio",
+    )
+    p_mcp.set_defaults(func=cmd_mcp)
 
     p_verify = sub.add_parser(
         "verify-invariants",

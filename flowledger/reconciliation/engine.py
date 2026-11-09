@@ -175,6 +175,104 @@ class ThreeWayReconciliationEngine:
             )
         return records
 
+    @staticmethod
+    def parse_camt053_xml(
+        xml_text: str, default_provider: str = "stanbic_bank"
+    ) -> list[ProviderSettlementRecord]:
+        """Parse ISO 20022 CAMT.053 XML bank statement into ProviderSettlementRecord instances."""
+        from flowledger.reconciliation.camt053 import Camt053Parser
+
+        return Camt053Parser.parse(xml_text, default_provider=default_provider)
+
+    @staticmethod
+    def export_reconciliation_csv(report: ReconciliationReport) -> str:
+        """Export full 3-way reconciliation items to CSV format."""
+        buf = io.StringIO()
+        fieldnames = [
+            "payment_id",
+            "provider",
+            "currency",
+            "status",
+            "order_state",
+            "order_amount",
+            "ledger_settled_amount",
+            "ledger_provider_fee",
+            "provider_gross_amount",
+            "provider_fee_amount",
+            "discrepancy_delta",
+            "explanation",
+            "recommended_action",
+        ]
+        writer = csv.DictWriter(buf, fieldnames=fieldnames)
+        writer.writeheader()
+        for item in report.items:
+            action = (
+                item.adjustment_proposal.recommended_action
+                if item.adjustment_proposal
+                else ""
+            )
+            writer.writerow(
+                {
+                    "payment_id": item.payment_id,
+                    "provider": item.provider,
+                    "currency": item.currency.value,
+                    "status": item.status.value,
+                    "order_state": item.order_state or "",
+                    "order_amount": item.order_amount if item.order_amount is not None else "",
+                    "ledger_settled_amount": item.ledger_settled_amount if item.ledger_settled_amount is not None else "",
+                    "ledger_provider_fee": item.ledger_provider_fee if item.ledger_provider_fee is not None else "",
+                    "provider_gross_amount": item.provider_gross_amount if item.provider_gross_amount is not None else "",
+                    "provider_fee_amount": item.provider_fee_amount if item.provider_fee_amount is not None else "",
+                    "discrepancy_delta": item.discrepancy_delta,
+                    "explanation": item.explanation,
+                    "recommended_action": action,
+                }
+            )
+        return buf.getvalue()
+
+    @staticmethod
+    def export_exceptions_csv(report: ReconciliationReport) -> str:
+        """Export only detected reconciliation discrepancies and exceptions to CSV format."""
+        buf = io.StringIO()
+        fieldnames = [
+            "payment_id",
+            "provider",
+            "currency",
+            "status",
+            "discrepancy_delta",
+            "explanation",
+            "recommended_action",
+            "requires_state_override",
+        ]
+        writer = csv.DictWriter(buf, fieldnames=fieldnames)
+        writer.writeheader()
+        for item in report.items:
+            if item.status == ReconciliationStatus.MATCHED:
+                continue
+            action = (
+                item.adjustment_proposal.recommended_action
+                if item.adjustment_proposal
+                else item.explanation
+            )
+            override = (
+                item.adjustment_proposal.requires_state_override
+                if item.adjustment_proposal
+                else False
+            )
+            writer.writerow(
+                {
+                    "payment_id": item.payment_id,
+                    "provider": item.provider,
+                    "currency": item.currency.value,
+                    "status": item.status.value,
+                    "discrepancy_delta": item.discrepancy_delta,
+                    "explanation": item.explanation,
+                    "recommended_action": action,
+                    "requires_state_override": override,
+                }
+            )
+        return buf.getvalue()
+
     def reconcile(
         self,
         *,
