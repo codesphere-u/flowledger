@@ -305,3 +305,9 @@ def test_mcp_v2_tools_listed_and_callable():
         debtor_agent_bic="X", creditor_name="b", creditor_agent_bic="Y"))["xml"]
     assert _call(s, "flowledger_screen_name", {"name": "Test Sanctioned Person"})["match"] is True
     assert _call(s, "flowledger_merkle_root", {})["entries"] == 2
+
+
+def test_quickstart_example_runs_end_to_end():
+    import runpy
+    ns = runpy.run_path("examples/quickstart.py")
+    assert ns["main"]() == {"entries": 3, "valid": True}
