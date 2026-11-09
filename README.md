@@ -1,11 +1,13 @@
 # FlowLedger
 
 [![CI](https://github.com/codesphere-u/flowledger/actions/workflows/ci.yml/badge.svg)](https://github.com/codesphere-u/flowledger/actions/workflows/ci.yml)
+[![Release v2.0.0](https://img.shields.io/badge/release-v2.0.0-blue.svg)](https://github.com/codesphere-u/flowledger/releases/tag/v2.0.0)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-14b8a6.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
 [![Double-Entry Invariants](https://img.shields.io/badge/Ledger-Zero--Sum%20%2B%20SHA--256%20Chained-0d9488)](docs/architecture.md)
+[![Automated Tests](https://img.shields.io/badge/tests-94%20passed-brightgreen.svg)](tests/)
 
-**FlowLedger** is an African Payment Orchestration & Immutable Double-Entry Reconciliation Engine built in Python. It models mobile money collection and settlement workflows (`MTN MoMo`, `Airtel Money`) across East and West African currencies (`UGX`, `KES`, `NGN`, `USD`) with strict mathematical accounting invariants, idempotency guarantees, cryptographic webhook verification, and automated 3-way reconciliation.
+**FlowLedger** is a Pan-African & Global Interledger Engine, Multi-Rail Payment Orchestrator, and Immutable Double-Entry Reconciliation System built in Python. It models mobile money and card collection workflows (`Safaricom M-Pesa Daraja 2.0`, `MTN MoMo`, `Airtel Money`, `Wave`, `Orange Money`), cross-border FX corridors, ISO 20022 messaging (`pacs.008`, `pacs.002`, `camt.053`), offline-first cryptographic vouchers, SQLite WAL persistence, and RFC 6962 Merkle audit trees across 12 currencies with strict mathematical accounting invariants.
 
 ---
 
@@ -98,10 +100,13 @@ uv run --with pytest --with fastapi --with httpx --with pydantic pytest -v
 
 ## Documentation Index
 
-- [Architecture & Data Flow](docs/architecture.md)
+- [Architecture & Data Flow (v2.0)](docs/architecture.md)
 - [v2.0 Architecture Additions](docs/v2-architecture.md)
 - [ADR-001: Integer Minor Units & Double-Entry Invariants](docs/decisions/001-integer-minor-units-and-double-entry-invariants.md)
-- [Testing & Verification Guide](docs/testing.md)
+- [ADR-002: Cross-Border FX Corridors via Two-Journal Settlement](docs/decisions/002-cross-border-fx-two-journal-settlement.md)
+- [ADR-003: Offline Cryptographic Vouchers & Replay-Safe Settlement Queue](docs/decisions/003-offline-vouchers-replay-safe-queue.md)
+- [ADR-004: ISO 20022 Messaging Subsystem and SQLite WAL Ledger Durability](docs/decisions/004-iso20022-messaging-and-sqlite-wal-durability.md)
+- [Testing & Verification Guide (94 Tests)](docs/testing.md)
 - [Operational Scope & Known Limitations](docs/limitations.md)
 - [Security Policy](SECURITY.md)
 
