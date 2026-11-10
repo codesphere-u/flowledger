@@ -7,6 +7,7 @@ and does not validate against the full XSD; amounts are converted to/from intege
 
 from __future__ import annotations
 
+import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -16,6 +17,23 @@ from flowledger.ledger.models import Currency, validate_minor_units
 
 PACS008_NS = "urn:iso:std:iso:20022:tech:xsd:pacs.008.001.10"
 PACS002_NS = "urn:iso:std:iso:20022:tech:xsd:pacs.002.001.12"
+
+BIC_PATTERN = re.compile(r"^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$")
+LEI_PATTERN = re.compile(r"^[A-Z0-9]{18}[0-9]{2}$")
+
+
+def validate_bic(bic: str) -> bool:
+    """Validate ISO 9362 Business Identifier Code (BIC/SWIFT) format (8 or 11 uppercase alphanumerics)."""
+    if not isinstance(bic, str):
+        return False
+    return bool(BIC_PATTERN.match(bic.strip().upper()))
+
+
+def validate_lei(lei: str) -> bool:
+    """Validate ISO 17442 Legal Entity Identifier (LEI) 20-character format."""
+    if not isinstance(lei, str):
+        return False
+    return bool(LEI_PATTERN.match(lei.strip().upper()))
 
 # Decimal places used when rendering minor units as ISO 20022 decimal amounts.
 _EXPONENT = {
@@ -61,6 +79,22 @@ class Pacs008:
     creditor_name: str
     creditor_agent_bic: str
     remittance_info: str = ""
+
+
+def validate_pacs008_bics(msg: Pacs008, *, strict: bool = True) -> bool:
+    """Validate that debtor and creditor agent BICs conform to ISO 9362."""
+    valid_debtor = validate_bic(msg.debtor_agent_bic)
+    valid_creditor = validate_bic(msg.creditor_agent_bic)
+    if not (valid_debtor and valid_creditor):
+        if strict:
+            invalid_agents = []
+            if not valid_debtor:
+                invalid_agents.append(f"debtor_agent_bic={msg.debtor_agent_bic!r}")
+            if not valid_creditor:
+                invalid_agents.append(f"creditor_agent_bic={msg.creditor_agent_bic!r}")
+            raise Iso20022Error(f"Malformed ISO 9362 BIC: {', '.join(invalid_agents)}")
+        return False
+    return True
 
 
 def generate_pacs008(msg: Pacs008, *, created_at: str | None = None) -> str:

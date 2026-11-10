@@ -311,3 +311,33 @@ def test_quickstart_example_runs_end_to_end():
     import runpy
     ns = runpy.run_path("examples/quickstart.py")
     assert ns["main"]() == {"entries": 3, "valid": True}
+
+
+def test_iso9362_bic_and_iso17442_lei_validation():
+    # Valid BICs: 8 or 11 characters
+    assert iso.validate_bic("KCBLKENX") is True
+    assert iso.validate_bic("SBICUGKX") is True
+    assert iso.validate_bic("BARCGB22XXX") is True
+    # Invalid BICs: too short, bad chars, lowercase
+    assert iso.validate_bic("SHORT") is False
+    assert iso.validate_bic("12345678") is False
+    assert iso.validate_bic(None) is False
+
+    # Valid LEI: 20 alphanumeric characters
+    assert iso.validate_lei("5493001KJTIIGC8Y1R12") is True
+    assert iso.validate_lei("984500BB0152F942A829") is True
+    # Invalid LEI
+    assert iso.validate_lei("TOOSHORT") is False
+    assert iso.validate_lei(None) is False
+
+
+def test_validate_pacs008_bics_enforcement():
+    valid_msg = _p008(debtor_agent_bic="KCBLKENX", creditor_agent_bic="SBICUGKX")
+    assert iso.validate_pacs008_bics(valid_msg) is True
+
+    invalid_msg = _p008(debtor_agent_bic="INVALID_BIC", creditor_agent_bic="SBICUGKX")
+    assert iso.validate_pacs008_bics(invalid_msg, strict=False) is False
+    with pytest.raises(iso.Iso20022Error) as exc_info:
+        iso.validate_pacs008_bics(invalid_msg, strict=True)
+    assert "Malformed ISO 9362 BIC" in str(exc_info.value)
+
