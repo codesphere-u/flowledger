@@ -19,6 +19,8 @@ wheels/
 .installed.cfg
 *.egg
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/
 .coverage
 htmlcov/
 .env

@@ -63,7 +63,7 @@ def decimal_to_minor(text: str, currency: Currency) -> int:
         whole, _, frac = text.strip().partition(".")
         if len(frac) > exp or not whole.isdigit() or (frac and not frac.isdigit()):
             raise ValueError
-        return int(whole) * 10**exp + int(frac.ljust(exp, "0") or 0)
+        return int(whole) * int(10**exp) + int(frac.ljust(exp, "0") or 0)
     except ValueError as exc:
         raise Iso20022Error(f"Invalid amount {text!r} for {currency}") from exc
 
@@ -153,6 +153,8 @@ def parse_pacs008(xml_text: str) -> Pacs008:
     if dbtr_agt is None or cdtr_agt is None:
         raise Iso20022Error("Missing debtor/creditor agent")
     dbtr, cdtr = _find(root, "Dbtr"), _find(root, "Cdtr")
+    if dbtr is None or cdtr is None:
+        raise Iso20022Error("Missing debtor/creditor")
     return Pacs008(
         message_id=_text(root, "MsgId"),
         end_to_end_id=_text(root, "EndToEndId"),

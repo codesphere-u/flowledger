@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import threading
 import uuid
+from collections.abc import Sequence
 from datetime import datetime, timezone
-from typing import Any, Sequence
+from typing import Any
 
 from flowledger.ledger.models import (
     GENESIS_HASH,
@@ -282,8 +283,8 @@ class LedgerEngine:
             errors: list[str] = []
             expected_prev_hash = GENESIS_HASH
 
-            recomputed_debits: dict[str, int] = { acc_id: 0 for acc_id in self._accounts }
-            recomputed_credits: dict[str, int] = { acc_id: 0 for acc_id in self._accounts }
+            recomputed_debits: dict[str, int] = dict.fromkeys(self._accounts, 0)
+            recomputed_credits: dict[str, int] = dict.fromkeys(self._accounts, 0)
 
             for idx, entry in enumerate(self._entries):
                 # 1. Verify hash chain continuity

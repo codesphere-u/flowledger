@@ -76,11 +76,11 @@ def calculate_retry_backoff_ms(
         raise ValueError("attempt must be >= 1")
     exponential = min(max_delay_ms, base_delay_ms * (2 ** (attempt - 1)))
     if deterministic_key:
-        digest = hashlib.sha256(f"{deterministic_key}:{attempt}".encode("utf-8")).digest()
+        digest = hashlib.sha256(f"{deterministic_key}:{attempt}".encode()).digest()
         jitter = digest[0] % max(1, (exponential // 5))
     else:
         jitter = 0
-    return min(max_delay_ms, exponential + jitter)
+    return int(min(max_delay_ms, exponential + jitter))
 
 
 class BaseMobileMoneySandboxAdapter:

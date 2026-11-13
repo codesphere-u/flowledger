@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from fastapi.testclient import TestClient
 
-from flowledger.cli import main as cli_main, run_synthetic_simulation
+from flowledger.cli import main as cli_main
+from flowledger.cli import run_synthetic_simulation
 from flowledger.ledger.models import Currency
 from flowledger.payments import PaymentOrchestrator
 from flowledger.providers import FailureInjectionSimulator, FailureScenario
@@ -41,7 +42,7 @@ def test_reconciliation_detects_all_six_classification_categories() -> None:
         simulator.run_scenario(payment=intent, scenario=scenario)
 
     # Also create a payment that settled locally in ledger but is missing from provider statement
-    intent_missing_prov, _ = orchestrator.create_payment_intent(
+    _intent_missing_prov, _ = orchestrator.create_payment_intent(
         idempotency_key="idem_pay_miss_prov",
         payment_id="pay_miss_prov",
         merchant_id="merch_recon",

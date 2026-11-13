@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import tempfile
+
 import pytest
 
 from flowledger.cli import main
@@ -92,7 +93,7 @@ def test_camt053_parser_valid_entries() -> None:
 
 
 def test_camt053_parser_empty_and_malformed() -> None:
-    with pytest.raises(Camt053ParseError, match="Empty CAMT.053"):
+    with pytest.raises(Camt053ParseError, match=r"Empty CAMT\.053"):
         Camt053Parser.parse("   ")
 
     with pytest.raises(Camt053ParseError, match="Invalid XML syntax"):

@@ -9,7 +9,6 @@ from __future__ import annotations
 import re
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
-from typing import List, Optional
 
 from flowledger.ledger.models import Currency
 from flowledger.providers.sandbox import ProviderSettlementRecord
@@ -28,7 +27,7 @@ class Camt053Parser:
     """Zero-dependency ISO 20022 CAMT.053 XML Bank Statement Parser."""
 
     @staticmethod
-    def parse(xml_text: str, default_provider: str = "stanbic_bank") -> List[ProviderSettlementRecord]:
+    def parse(xml_text: str, default_provider: str = "stanbic_bank") -> list[ProviderSettlementRecord]:
         """Parse an ISO 20022 CAMT.053 XML string into ProviderSettlementRecord items."""
         if not xml_text or not xml_text.strip():
             raise Camt053ParseError("Empty CAMT.053 XML content")
@@ -38,7 +37,7 @@ class Camt053Parser:
         except ET.ParseError as exc:
             raise Camt053ParseError(f"Invalid XML syntax in CAMT.053: {exc}") from exc
 
-        records: List[ProviderSettlementRecord] = []
+        records: list[ProviderSettlementRecord] = []
 
         # Traverse statements
         # Handles both namespaced and non-namespaced XML
@@ -64,13 +63,13 @@ class Camt053Parser:
         return records
 
     @staticmethod
-    def _parse_entry(ntry: ET.Element, stmt_id: str, default_provider: str) -> Optional[ProviderSettlementRecord]:
-        gross_amount_minor: Optional[int] = None
-        currency_str: Optional[str] = None
+    def _parse_entry(ntry: ET.Element, stmt_id: str, default_provider: str) -> ProviderSettlementRecord | None:
+        gross_amount_minor: int | None = None
+        currency_str: str | None = None
         status = "SETTLED"
-        booking_date: Optional[str] = None
-        payment_id: Optional[str] = None
-        ext_ref: Optional[str] = None
+        booking_date: str | None = None
+        payment_id: str | None = None
+        ext_ref: str | None = None
         provider_fee_minor: int = 0
         provider = default_provider
 

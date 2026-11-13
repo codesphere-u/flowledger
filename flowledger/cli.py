@@ -248,6 +248,7 @@ def cmd_verify_invariants(args: argparse.Namespace) -> int:
 
 def cmd_serve(args: argparse.Namespace) -> int:
     import uvicorn
+
     from flowledger.server.app import create_app
 
     app = create_app(bootstrap_demo=True)

@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import csv
 import io
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Sequence
+from typing import Any
 
 from flowledger.ledger.engine import LedgerEngine
 from flowledger.ledger.models import Currency, EntryDirection, JournalEntry
@@ -326,13 +327,13 @@ class ThreeWayReconciliationEngine:
 
         for pid in all_payment_ids:
             intent = payment_map.get(pid)
-            stmt = normalized_statements.get(pid)
+            stmt_rec = normalized_statements.get(pid)
             p_entries = entries_by_payment.get(pid, [])
 
             item = self._evaluate_single_payment(
                 payment_id=pid,
                 intent=intent,
-                stmt=stmt,
+                stmt=stmt_rec,
                 entries=p_entries,
             )
             items.append(item)
@@ -527,9 +528,9 @@ class ThreeWayReconciliationEngine:
             PaymentState.INITIATED,
         ):
             amt = intent.amount
-            proposal = None
+            stale_proposal: AdjustmentProposal | None = None
             if auth_entries:
-                proposal = AdjustmentProposal(
+                stale_proposal = AdjustmentProposal(
                     payment_id=payment_id,
                     discrepancy_type=ReconciliationStatus.STALE_UNSETTLED,
                     currency=currency,
@@ -566,7 +567,7 @@ class ThreeWayReconciliationEngine:
                     f"Payment remains in non-terminal state '{intent.state.value}' "
                     f"for {amt} {currency.value} without provider settlement confirmation"
                 ),
-                adjustment_proposal=proposal,
+                adjustment_proposal=stale_proposal,
             )
 
         # Case 4: Both Ledger and Provider Statement exist — compare Gross Amount & Provider Fee

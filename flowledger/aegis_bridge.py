@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from flowledger.ledger.models import InvariantReport
 from flowledger.reconciliation.engine import ReconciliationReport, ReconciliationStatus
@@ -26,19 +26,19 @@ def hash_leaf_bytes(data: bytes) -> str:
 
 
 def create_aegis_financial_payload(
-    invariant_report: Optional[Union[InvariantReport, Dict[str, Any]]] = None,
-    recon_report: Optional[Union[ReconciliationReport, Dict[str, Any]]] = None,
+    invariant_report: InvariantReport | dict[str, Any] | None = None,
+    recon_report: ReconciliationReport | dict[str, Any] | None = None,
     task_id: str = "flowledger_financial_audit",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Transform FlowLedger mathematical invariant checks and 3-way reconciliation results
     into canonical Nexus Aegis attestation format.
     """
-    violations: List[str] = []
+    violations: list[str] = []
     journal_count = 0
     account_count = 0
     head_hash = "0" * 64
-    trial_balances: Dict[str, Any] = {}
+    trial_balances: dict[str, Any] = {}
     is_ledger_valid = True
 
     if isinstance(invariant_report, InvariantReport):
@@ -113,10 +113,10 @@ def create_aegis_financial_payload(
 
 
 def create_aegis_financial_leaf(
-    invariant_report: Optional[Union[InvariantReport, Dict[str, Any]]] = None,
-    recon_report: Optional[Union[ReconciliationReport, Dict[str, Any]]] = None,
+    invariant_report: InvariantReport | dict[str, Any] | None = None,
+    recon_report: ReconciliationReport | dict[str, Any] | None = None,
     task_id: str = "flowledger_financial_audit",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Return the full RFC 6962 attestation package containing canonical payload,
     leaf hash, and domain separation metadata.

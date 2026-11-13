@@ -2,10 +2,18 @@
 
 from __future__ import annotations
 
+import logging
+import re
+import threading
+import time
+import uuid
+from collections import Counter
+from collections.abc import AsyncIterator, Awaitable, Callable
+from contextlib import asynccontextmanager
 from typing import Any
 
-from fastapi import FastAPI, Header, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI, Header, HTTPException, Request, Response
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 from flowledger.cli import run_synthetic_simulation
@@ -16,6 +24,194 @@ from flowledger.payments.state_machine import InvalidStateTransitionError, Payme
 from flowledger.providers.sandbox import FailureInjectionSimulator, FailureScenario
 from flowledger.providers.webhooks import WebhookReplayError, WebhookSignatureError
 from flowledger.reconciliation.engine import ThreeWayReconciliationEngine
+
+logger = logging.getLogger("flowledger.server")
+
+_MAX_REQUEST_BODY_BYTES = 1_048_576  # 1 MiB
+_REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
+_SECURITY_HEADERS: dict[str, str] = {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Cache-Control": "no-store",
+}
+
+
+class _RuntimeMetrics:
+    """Thread-safe in-memory HTTP runtime metrics for /metrics exposition."""
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self.started_at = time.monotonic()
+        self.requests_total = 0
+        self.errors_total = 0
+        self.latency_ms_sum = 0.0
+        self.status_code_counts: Counter[int] = Counter()
+
+    def record(self, status_code: int, latency_ms: float) -> None:
+        with self._lock:
+            self.requests_total += 1
+            if status_code >= 500:
+                self.errors_total += 1
+            self.latency_ms_sum += latency_ms
+            self.status_code_counts[status_code] += 1
+
+    def snapshot(self, *, journal_count: int, payment_count: int, invariants_valid: bool) -> dict[str, Any]:
+        with self._lock:
+            return {
+                "uptime_seconds": round(time.monotonic() - self.started_at, 3),
+                "requests_total": self.requests_total,
+                "errors_total": self.errors_total,
+                "latency_ms_sum": round(self.latency_ms_sum, 3),
+                "status_code_counts": dict(sorted(self.status_code_counts.items())),
+                "journal_count": journal_count,
+                "payment_count": payment_count,
+                "invariants_valid": invariants_valid,
+            }
+
+
+def _sanitize_request_id(raw: str | None) -> str:
+    if raw and _REQUEST_ID_PATTERN.match(raw.strip()):
+        return raw.strip()
+    return uuid.uuid4().hex[:16]
+
+
+def _format_prometheus_metrics(snapshot: dict[str, Any]) -> str:
+    lines = [
+        "# HELP flowledger_uptime_seconds Server uptime in seconds.",
+        "# TYPE flowledger_uptime_seconds gauge",
+        f"flowledger_uptime_seconds {snapshot['uptime_seconds']}",
+        "# HELP flowledger_http_requests_total Total HTTP requests handled.",
+        "# TYPE flowledger_http_requests_total counter",
+        f"flowledger_http_requests_total {snapshot['requests_total']}",
+        "# HELP flowledger_http_errors_total Total HTTP 5xx responses.",
+        "# TYPE flowledger_http_errors_total counter",
+        f"flowledger_http_errors_total {snapshot['errors_total']}",
+        "# HELP flowledger_http_request_duration_ms_sum Cumulative HTTP response latency in ms.",
+        "# TYPE flowledger_http_request_duration_ms_sum counter",
+        f"flowledger_http_request_duration_ms_sum {snapshot['latency_ms_sum']}",
+        "# HELP flowledger_ledger_journals_total Current double-entry journal count.",
+        "# TYPE flowledger_ledger_journals_total gauge",
+        f"flowledger_ledger_journals_total {snapshot['journal_count']}",
+        "# HELP flowledger_payments_total Current payment intent count.",
+        "# TYPE flowledger_payments_total gauge",
+        f"flowledger_payments_total {snapshot['payment_count']}",
+        "# HELP flowledger_ledger_invariants_valid 1 if zero-sum & hash-chain invariants hold.",
+        "# TYPE flowledger_ledger_invariants_valid gauge",
+        f"flowledger_ledger_invariants_valid {1 if snapshot['invariants_valid'] else 0}",
+    ]
+    for code, count in snapshot["status_code_counts"].items():
+        lines.append(f'flowledger_http_responses_total{{status="{code}"}} {count}')
+    return "\n".join(lines) + "\n"
+
+
+class _HardeningMiddleware:
+    """ASGI middleware enforcing request-ID correlation, body size caps, timing & security headers."""
+
+    def __init__(self, app: Any, metrics: _RuntimeMetrics, max_body_bytes: int = _MAX_REQUEST_BODY_BYTES) -> None:
+        self.app = app
+        self.metrics = metrics
+        self.max_body_bytes = max_body_bytes
+
+    async def __call__(
+        self,
+        scope: dict[str, Any],
+        receive: Callable[[], Awaitable[dict[str, Any]]],
+        send: Callable[[dict[str, Any]], Awaitable[None]],
+    ) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        req_headers = {k.lower(): v for k, v in scope.get("headers", [])}
+        raw_req_id = req_headers.get(b"x-request-id")
+        request_id = _sanitize_request_id(raw_req_id.decode("latin-1") if raw_req_id else None)
+        scope.setdefault("state", {})["request_id"] = request_id
+        started = time.perf_counter()
+        status_code = 500
+
+        async def _send_with_headers(message: dict[str, Any]) -> None:
+            nonlocal status_code
+            if message["type"] == "http.response.start":
+                status_code = int(message["status"])
+                elapsed_ms = (time.perf_counter() - started) * 1000.0
+                headers = list(message.get("headers", []))
+                existing_keys = {k.lower() for k, _ in headers}
+                for key, val in _SECURITY_HEADERS.items():
+                    if key.lower().encode("latin-1") not in existing_keys:
+                        headers.append((key.encode("latin-1"), val.encode("latin-1")))
+                headers.append((b"x-request-id", request_id.encode("latin-1")))
+                headers.append((b"x-response-time-ms", f"{elapsed_ms:.2f}".encode("latin-1")))
+                message = {**message, "headers": headers}
+            await send(message)
+
+        method = str(scope.get("method", "GET")).upper()
+        if method in {"POST", "PUT", "PATCH"} and b"content-length" in req_headers:
+            try:
+                content_length = int(req_headers[b"content-length"].decode("latin-1"))
+            except ValueError:
+                content_length = -1
+            if content_length < 0 or content_length > self.max_body_bytes:
+                resp = JSONResponse(
+                    status_code=413,
+                    content={"error": "Payload too large", "max_bytes": self.max_body_bytes, "request_id": request_id},
+                )
+                await resp(scope, receive, _send_with_headers)
+                self.metrics.record(413, (time.perf_counter() - started) * 1000.0)
+                return
+
+        buffered_chunks: list[dict[str, Any]] | None = None
+        if method in {"POST", "PUT", "PATCH"}:
+            total_bytes = 0
+            chunks: list[dict[str, Any]] = []
+            more_body = True
+            while more_body:
+                event = await receive()
+                if event["type"] == "http.disconnect":
+                    chunks.append(event)
+                    break
+                if event["type"] == "http.request":
+                    body_part = event.get("body", b"")
+                    total_bytes += len(body_part)
+                    if total_bytes > self.max_body_bytes:
+                        resp = JSONResponse(
+                            status_code=413,
+                            content={
+                                "error": "Payload too large",
+                                "max_bytes": self.max_body_bytes,
+                                "request_id": request_id,
+                            },
+                        )
+                        await resp(scope, receive, _send_with_headers)
+                        self.metrics.record(413, (time.perf_counter() - started) * 1000.0)
+                        return
+                    chunks.append(event)
+                    more_body = bool(event.get("more_body", False))
+                else:
+                    chunks.append(event)
+            buffered_chunks = chunks
+
+        chunk_iter = iter(buffered_chunks) if buffered_chunks is not None else None
+
+        async def _bounded_receive() -> dict[str, Any]:
+            if chunk_iter is None:
+                return await receive()
+            try:
+                return next(chunk_iter)
+            except StopIteration:
+                return {"type": "http.disconnect"}
+
+        try:
+            await self.app(scope, _bounded_receive, _send_with_headers)
+        except Exception:
+            logger.exception("Unhandled exception in FlowLedger ASGI pipeline request_id=%s", request_id)
+            resp = JSONResponse(
+                status_code=500,
+                content={"error": "Internal server error", "request_id": request_id},
+            )
+            await resp(scope, receive, _send_with_headers)
+        finally:
+            self.metrics.record(status_code, (time.perf_counter() - started) * 1000.0)
 
 
 class CreatePaymentRequest(BaseModel):
@@ -318,13 +514,8 @@ refreshDashboard();
 
 def create_app(*, bootstrap_demo: bool = True) -> FastAPI:
     """Create and configure the FlowLedger FastAPI application."""
-    app = FastAPI(
-        title="FlowLedger API",
-        version="1.0.0",
-        description="African Payment Orchestration & Immutable Double-Entry Reconciliation Engine",
-    )
-
     state: dict[str, Any] = {}
+    metrics = _RuntimeMetrics()
 
     def _init_state(run_demo: bool) -> None:
         if run_demo:
@@ -340,21 +531,80 @@ def create_app(*, bootstrap_demo: bool = True) -> FastAPI:
 
     _init_state(bootstrap_demo)
 
+    @asynccontextmanager
+    async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
+        logger.info("FlowLedger HTTP server started bootstrap_demo=%s", bootstrap_demo)
+        yield
+        logger.info("FlowLedger HTTP server stopping")
+
+    app = FastAPI(
+        title="FlowLedger API",
+        version="2.0.0",
+        description="African Payment Orchestration & Immutable Double-Entry Reconciliation Engine",
+        lifespan=_lifespan,
+    )
+    app.add_middleware(_HardeningMiddleware, metrics=metrics)
+
+    @app.exception_handler(Exception)
+    async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+        request_id = getattr(request.state, "request_id", None) or _sanitize_request_id(
+            request.headers.get("x-request-id")
+        )
+        logger.exception("Unhandled FlowLedger exception request_id=%s", request_id, exc_info=exc)
+        return JSONResponse(
+            status_code=500,
+            content={"error": "Internal server error", "request_id": request_id},
+        )
+
     @app.get("/", response_class=HTMLResponse)
     def dashboard() -> HTMLResponse:
         return HTMLResponse(content=DASHBOARD_HTML)
 
-    @app.get("/health")
-    def health() -> dict[str, Any]:
+    def _health_payload() -> tuple[dict[str, Any], bool]:
         orch: PaymentOrchestrator = state["orchestrator"]
         inv = orch.ledger.verify_invariants()
-        return {
-            "status": "ok",
-            "version": "1.0.0",
+        payload = {
+            "status": "ok" if inv.is_valid else "degraded",
+            "version": "2.0.0",
             "invariants_valid": inv.is_valid,
             "journal_count": inv.journal_count,
             "head_hash": inv.head_hash,
         }
+        return payload, inv.is_valid
+
+    @app.api_route("/health", methods=["GET", "HEAD"])
+    @app.api_route("/healthz", methods=["GET", "HEAD"])
+    @app.api_route("/api/v1/health", methods=["GET", "HEAD"])
+    def health(request: Request) -> Response:
+        payload, _valid = _health_payload()
+        if request.method == "HEAD":
+            return Response(status_code=200)
+        return JSONResponse(content=payload, status_code=200)
+
+    @app.api_route("/readyz", methods=["GET", "HEAD"])
+    def readyz(request: Request) -> Response:
+        payload, valid = _health_payload()
+        status = 200 if valid else 503
+        if request.method == "HEAD":
+            return Response(status_code=status)
+        return JSONResponse(content=payload, status_code=status)
+
+    @app.get("/metrics")
+    def runtime_metrics(request: Request, format: str | None = None) -> Response:
+        orch: PaymentOrchestrator = state["orchestrator"]
+        inv = orch.ledger.verify_invariants()
+        snap = metrics.snapshot(
+            journal_count=inv.journal_count,
+            payment_count=len(orch.list_payments()),
+            invariants_valid=inv.is_valid,
+        )
+        accept = request.headers.get("accept", "")
+        if format == "json" or "application/json" in accept:
+            return JSONResponse(content=snap)
+        return PlainTextResponse(
+            content=_format_prometheus_metrics(snap),
+            media_type="text/plain; version=0.0.4; charset=utf-8",
+        )
 
     @app.get("/api/overview")
     def get_overview() -> dict[str, Any]:
@@ -479,6 +729,11 @@ def create_app(*, bootstrap_demo: bool = True) -> FastAPI:
     def simulate_scenario(req: SimulateScenarioRequest) -> dict[str, Any]:
         orch: PaymentOrchestrator = state["orchestrator"]
         sim: FailureInjectionSimulator = state["simulator"]
+        try:
+            currency = Currency(req.currency)
+            scenario = FailureScenario(req.scenario)
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
         idx = len(orch.list_payments()) + 1
         intent, _ = orch.create_payment_intent(
             idempotency_key=f"idem_ui_{idx}_{req.scenario.lower()}",
@@ -486,11 +741,11 @@ def create_app(*, bootstrap_demo: bool = True) -> FastAPI:
             merchant_id=req.merchant_id,
             customer_msisdn=req.customer_msisdn,
             amount=req.amount,
-            currency=Currency(req.currency),
+            currency=currency,
             provider=req.provider,
             description=f"Injected {req.scenario} simulation",
         )
-        log = sim.run_scenario(payment=intent, scenario=FailureScenario(req.scenario))
+        log = sim.run_scenario(payment=intent, scenario=scenario)
         return {
             "payment": intent.to_dict(),
             "simulation": log,

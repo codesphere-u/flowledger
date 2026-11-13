@@ -4,20 +4,20 @@ from __future__ import annotations
 
 import json
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from flowledger.aegis_bridge import create_aegis_financial_leaf
 from flowledger.cli import run_synthetic_simulation
-from flowledger.ledger.models import Currency
-from flowledger.payments.orchestrator import PaymentOrchestrator
-from flowledger.payments.split import EscrowManager, SplitRecipient, SplitRule
 from flowledger.compliance import SanctionsScreener
 from flowledger.ledger.merkle import ledger_merkle_root
+from flowledger.ledger.models import Currency
 from flowledger.payments.fx import FxEngine
+from flowledger.payments.orchestrator import PaymentOrchestrator
+from flowledger.payments.split import EscrowManager, SplitRecipient, SplitRule
 from flowledger.providers import mpesa
 from flowledger.reconciliation import iso20022
 
-MCP_TOOLS_SPEC: List[Dict[str, Any]] = [
+MCP_TOOLS_SPEC: list[dict[str, Any]] = [
     {
         "name": "flowledger_create_payment",
         "description": "Create an idempotent mobile money payment intent (MTN MoMo or Airtel Money) with integer minor units.",
@@ -168,11 +168,11 @@ MCP_TOOLS_SPEC: List[Dict[str, Any]] = [
 class FlowLedgerMCPServer:
     """JSON-RPC 2.0 MCP Server exposing FlowLedger double-entry and reconciliation capabilities."""
 
-    def __init__(self, orchestrator: Optional[PaymentOrchestrator] = None) -> None:
+    def __init__(self, orchestrator: PaymentOrchestrator | None = None) -> None:
         self.orchestrator = orchestrator or PaymentOrchestrator()
         self.escrow = EscrowManager(self.orchestrator.ledger)
 
-    def handle_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+    def handle_request(self, request: dict[str, Any]) -> dict[str, Any]:
         """Process a single JSON-RPC 2.0 request dictionary and return a response."""
         req_id = request.get("id")
         if request.get("jsonrpc") != "2.0" or "method" not in request:
@@ -226,10 +226,10 @@ class FlowLedgerMCPServer:
                 return self._ok(req_id, self._dispatch_tool(method, params))
 
             return self._error(req_id, -32601, f"Method not found: {method}")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - JSON-RPC boundary translates tool errors
             return self._error(req_id, -32000, str(exc))
 
-    def _dispatch_tool(self, tool_name: Optional[str], args: Dict[str, Any]) -> Dict[str, Any]:
+    def _dispatch_tool(self, tool_name: str | None, args: dict[str, Any]) -> dict[str, Any]:
         if tool_name == "flowledger_create_payment":
             intent, replayed = self.orchestrator.create_payment_intent(
                 idempotency_key=str(args["idempotency_key"]),
@@ -256,8 +256,8 @@ class FlowLedgerMCPServer:
                 for a in self.orchestrator.ledger.list_accounts()
                 if not curr_filter or a.currency.value == curr_filter
             ]
-            inv_report = self.orchestrator.ledger.verify_invariants().to_dict()
-            trial_balances = inv_report.get("trial_balance_by_currency", {})
+            inv_dict = self.orchestrator.ledger.verify_invariants().to_dict()
+            trial_balances = inv_dict.get("trial_balance_by_currency", {})
             if curr_filter:
                 trial_balances = {k: v for k, v in trial_balances.items() if k == curr_filter}
             return {"accounts": accounts, "trial_balances": trial_balances}
@@ -269,7 +269,7 @@ class FlowLedgerMCPServer:
         if tool_name == "flowledger_run_reconciliation":
             count = int(args.get("count", 50))
             sim = run_synthetic_simulation(total_transactions=count)
-            return sim["reconciliation"].to_dict()
+            return dict(sim["reconciliation"].to_dict())
 
         if tool_name == "flowledger_create_escrow_hold":
             payment_id = str(args["payment_id"])
@@ -368,11 +368,11 @@ class FlowLedgerMCPServer:
         raise ValueError(f"Unknown tool: {tool_name}")
 
     @staticmethod
-    def _ok(req_id: Any, result: Dict[str, Any]) -> Dict[str, Any]:
+    def _ok(req_id: Any, result: dict[str, Any]) -> dict[str, Any]:
         return {"jsonrpc": "2.0", "id": req_id, "result": result}
 
     @staticmethod
-    def _error(req_id: Any, code: int, message: str) -> Dict[str, Any]:
+    def _error(req_id: Any, code: int, message: str) -> dict[str, Any]:
         return {"jsonrpc": "2.0", "id": req_id, "error": {"code": code, "message": message}}
 
     def serve_stdio(self) -> None:  # pragma: no cover

@@ -7,16 +7,35 @@ import pytest
 
 from flowledger.compliance import SanctionsScreener, VelocityMonitor, jaro_winkler
 from flowledger.ledger.engine import LedgerEngine
-from flowledger.ledger.merkle import inclusion_proof, ledger_merkle_root, merkle_root, verify_inclusion
+from flowledger.ledger.merkle import (
+    inclusion_proof,
+    ledger_merkle_root,
+    merkle_root,
+    verify_inclusion,
+)
 from flowledger.ledger.models import Currency, EntryDirection, LedgerPosting
 from flowledger.ledger.storage import SqliteLedgerStore, StorageIntegrityError
-from flowledger.payments.fx import FxEngine, FxError, QuoteConsumedError, QuoteExpiredError
+from flowledger.payments.fx import (
+    FxEngine,
+    FxError,
+    QuoteConsumedError,
+    QuoteExpiredError,
+)
 from flowledger.payments.offline_voucher import (
-    InvalidSignatureError, OfflineSettlementQueue, Voucher, VoucherExpiredError, VoucherReplayError,
-    sign_voucher, verify_voucher,
+    InvalidSignatureError,
+    OfflineSettlementQueue,
+    Voucher,
+    VoucherExpiredError,
+    VoucherReplayError,
+    sign_voucher,
+    verify_voucher,
 )
 from flowledger.providers import mpesa
-from flowledger.providers.regional import WALLET_PROFILES, SimulatedStablecoinRail, get_wallet
+from flowledger.providers.regional import (
+    WALLET_PROFILES,
+    SimulatedStablecoinRail,
+    get_wallet,
+)
 from flowledger.reconciliation import iso20022 as iso
 
 NOW = datetime(2026, 11, 9, 12, 0, tzinfo=timezone.utc)
@@ -91,9 +110,17 @@ def test_stablecoin_quote_integer_math():
 
 # ---------- ISO 20022 ----------
 def _p008(**kw):
-    base = dict(message_id="M1", end_to_end_id="E2E1", amount_minor=123_456, currency=Currency.KES,
-                debtor_name="Alice & Co", debtor_agent_bic="KCBLKENX", creditor_name="Bob",
-                creditor_agent_bic="SBICUGKX", remittance_info="Invoice 7")
+    base = {
+        "message_id": "M1",
+        "end_to_end_id": "E2E1",
+        "amount_minor": 123_456,
+        "currency": Currency.KES,
+        "debtor_name": "Alice & Co",
+        "debtor_agent_bic": "KCBLKENX",
+        "creditor_name": "Bob",
+        "creditor_agent_bic": "SBICUGKX",
+        "remittance_info": "Invoice 7",
+    }
     base.update(kw)
     return iso.Pacs008(**base)
 
@@ -155,8 +182,15 @@ KEY = b"merchant-secret"
 
 
 def _voucher(**kw):
-    base = dict(voucher_id="v1", merchant_id="m1", payer_id="p1", amount=5000, currency=Currency.UGX,
-                nonce=1, expires_at=(NOW + timedelta(hours=1)).isoformat())
+    base = {
+        "voucher_id": "v1",
+        "merchant_id": "m1",
+        "payer_id": "p1",
+        "amount": 5000,
+        "currency": Currency.UGX,
+        "nonce": 1,
+        "expires_at": (NOW + timedelta(hours=1)).isoformat(),
+    }
     base.update(kw)
     return sign_voucher(Voucher(**base), KEY)
 
@@ -293,16 +327,40 @@ def test_mcp_v2_tools_listed_and_callable():
     names = {t["name"] for t in s.handle_request({"jsonrpc": "2.0", "id": 1, "method": "tools/list"})["result"]["tools"]}
     assert {"flowledger_build_mpesa_stk_push", "flowledger_fx_quote", "flowledger_generate_pacs008",
             "flowledger_screen_name", "flowledger_merkle_root"} <= names
-    stk = _call(s, "flowledger_build_mpesa_stk_push", dict(
-        shortcode="174379", passkey="pk", timestamp="20261109120000", amount_minor=10000,
-        msisdn="0712345678", callback_url="https://x.example/cb", account_reference="A1"))
+    stk = _call(
+        s,
+        "flowledger_build_mpesa_stk_push",
+        {
+            "shortcode": "174379",
+            "passkey": "pk",
+            "timestamp": "20261109120000",
+            "amount_minor": 10000,
+            "msisdn": "0712345678",
+            "callback_url": "https://x.example/cb",
+            "account_reference": "A1",
+        },
+    )
     assert stk["Amount"] == "100"
-    fxo = _call(s, "flowledger_fx_quote", dict(source="UGX", target="KES", source_amount=3_700_000,
-                                               rate_micro=35_000, execute=True))
+    fxo = _call(
+        s,
+        "flowledger_fx_quote",
+        {"source": "UGX", "target": "KES", "source_amount": 3_700_000, "rate_micro": 35_000, "execute": True},
+    )
     assert len(fxo["entry_ids"]) == 2
-    assert "<MsgId>M9</MsgId>" in _call(s, "flowledger_generate_pacs008", dict(
-        message_id="M9", end_to_end_id="E", amount_minor=100, currency="KES", debtor_name="a",
-        debtor_agent_bic="X", creditor_name="b", creditor_agent_bic="Y"))["xml"]
+    assert "<MsgId>M9</MsgId>" in _call(
+        s,
+        "flowledger_generate_pacs008",
+        {
+            "message_id": "M9",
+            "end_to_end_id": "E",
+            "amount_minor": 100,
+            "currency": "KES",
+            "debtor_name": "a",
+            "debtor_agent_bic": "X",
+            "creditor_name": "b",
+            "creditor_agent_bic": "Y",
+        },
+    )["xml"]
     assert _call(s, "flowledger_screen_name", {"name": "Test Sanctioned Person"})["match"] is True
     assert _call(s, "flowledger_merkle_root", {})["entries"] == 2
 

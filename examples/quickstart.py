@@ -8,7 +8,12 @@ import tempfile
 from pathlib import Path
 
 from flowledger import (
-    FxEngine, LedgerEngine, SqliteLedgerStore, inclusion_proof, merkle_root, verify_inclusion,
+    FxEngine,
+    LedgerEngine,
+    SqliteLedgerStore,
+    inclusion_proof,
+    merkle_root,
+    verify_inclusion,
 )
 from flowledger.ledger.models import Currency, EntryDirection, LedgerPosting
 from flowledger.providers import mpesa

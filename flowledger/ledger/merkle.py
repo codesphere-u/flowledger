@@ -41,8 +41,8 @@ def inclusion_proof(leaves: list[bytes], index: int) -> list[bytes]:
         return []
     k = _split(n)
     if index < k:
-        return inclusion_proof(leaves[:k], index) + [merkle_root(leaves[k:])]
-    return inclusion_proof(leaves[k:], index - k) + [merkle_root(leaves[:k])]
+        return [*inclusion_proof(leaves[:k], index), merkle_root(leaves[k:])]
+    return [*inclusion_proof(leaves[k:], index - k), merkle_root(leaves[:k])]
 
 
 def verify_inclusion(leaf_data: bytes, index: int, tree_size: int, proof: list[bytes], root: bytes) -> bool:

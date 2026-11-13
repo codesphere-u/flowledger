@@ -13,7 +13,13 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 from flowledger.ledger.engine import LedgerEngine
-from flowledger.ledger.models import AccountType, Currency, EntryDirection, LedgerPosting, validate_minor_units
+from flowledger.ledger.models import (
+    AccountType,
+    Currency,
+    EntryDirection,
+    LedgerPosting,
+    validate_minor_units,
+)
 
 
 class FxError(Exception):

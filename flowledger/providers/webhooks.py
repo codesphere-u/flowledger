@@ -50,7 +50,7 @@ class WebhookVerifier:
 
     def compute_signature(self, timestamp: int | str, raw_body: str) -> str:
         """Compute `sha256=<hex>` over `<timestamp>.<raw_body>`."""
-        signing_input = f"{timestamp}.{raw_body}".encode("utf-8")
+        signing_input = f"{timestamp}.{raw_body}".encode()
         digest = hmac.new(self._secret, signing_input, hashlib.sha256).hexdigest()
         return f"sha256={digest}"
 

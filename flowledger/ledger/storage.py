@@ -37,7 +37,7 @@ class SqliteLedgerStore:
         self._conn.executescript(_SCHEMA)
 
     def journal_mode(self) -> str:
-        return self._conn.execute("PRAGMA journal_mode").fetchone()[0]
+        return str(self._conn.execute("PRAGMA journal_mode").fetchone()[0])
 
     def close(self) -> None:
         self._conn.close()
@@ -77,7 +77,7 @@ class SqliteLedgerStore:
             _, entry_id, ref, desc, cur, postings, ts, prev_hash, entry_hash, meta = row
             entry = engine.record_journal_entry(
                 reference=ref, description=desc, currency=Currency(cur),
-                postings=[LedgerPosting(**{**p}) for p in json.loads(postings)],
+                postings=[LedgerPosting(**p) for p in json.loads(postings)],
                 metadata=json.loads(meta), entry_id=entry_id, timestamp=ts,
             )
             if entry.prev_hash != prev_hash or entry.entry_hash != entry_hash:

@@ -10,10 +10,16 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from flowledger.ledger.engine import LedgerEngine, LedgerError
-from flowledger.ledger.models import AccountType, Currency, EntryDirection, LedgerPosting, validate_minor_units
+from flowledger.ledger.models import (
+    AccountType,
+    Currency,
+    EntryDirection,
+    LedgerPosting,
+    validate_minor_units,
+)
 
 
 class EscrowStatus(str, Enum):
@@ -31,8 +37,8 @@ class SplitRecipient:
     recipient_id: str
     role: str  # e.g., "PROVIDER", "PLATFORM", "AFFILIATE", "GATEWAY"
     account_id: str
-    basis_points: Optional[int] = None  # 100 bps = 1.00%, 10_000 bps = 100.00%
-    fixed_amount: Optional[int] = None  # integer minor units
+    basis_points: int | None = None  # 100 bps = 1.00%, 10_000 bps = 100.00%
+    fixed_amount: int | None = None  # integer minor units
 
 
 @dataclass(frozen=True)
@@ -40,12 +46,12 @@ class SplitRule:
     """Collection of split recipient allocations for a marketplace payment."""
 
     rule_id: str
-    recipients: List[SplitRecipient]
+    recipients: list[SplitRecipient]
 
-    def compute_allocations(self, total_amount: int) -> List[Tuple[SplitRecipient, int]]:
+    def compute_allocations(self, total_amount: int) -> list[tuple[SplitRecipient, int]]:
         """Compute exact integer minor-unit allocations ensuring sum(allocations) == total_amount."""
         validate_minor_units(total_amount, allow_zero=False)
-        allocations: List[Tuple[SplitRecipient, int]] = []
+        allocations: list[tuple[SplitRecipient, int]] = []
         allocated_so_far = 0
 
         # Process fixed amounts first
@@ -62,17 +68,21 @@ class SplitRule:
             )
 
         # Process basis point allocations
-        bps_recipients = [r for r in self.recipients if r.basis_points is not None]
-        total_bps = sum(r.basis_points for r in bps_recipients)
+        bps_pairs = [
+            (r, r.basis_points)
+            for r in self.recipients
+            if r.basis_points is not None
+        ]
+        total_bps = sum(bps for _, bps in bps_pairs)
         if total_bps > 10_000:
             raise LedgerError(f"Total split basis points exceed 10,000 (100%): {total_bps} bps")
 
-        for idx, r in enumerate(bps_recipients):
-            if idx == len(bps_recipients) - 1 and total_bps == 10_000:
+        for idx, (r, bps) in enumerate(bps_pairs):
+            if idx == len(bps_pairs) - 1 and total_bps == 10_000:
                 # Absorb integer division rounding into last recipient to guarantee zero minor-unit leakage
                 amt = total_amount - allocated_so_far
             else:
-                amt = (total_amount * r.basis_points) // 10_000
+                amt = (total_amount * bps) // 10_000
             allocations.append((r, amt))
             allocated_so_far += amt
 
@@ -96,11 +106,11 @@ class EscrowHold:
     escrow_account_id: str = ""
     source_clearing_account: str = ""
     held_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    resolved_at: Optional[str] = None
-    split_rule: Optional[SplitRule] = None
-    allocations: List[Dict[str, Any]] = field(default_factory=list)
+    resolved_at: str | None = None
+    split_rule: SplitRule | None = None
+    allocations: list[dict[str, Any]] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "escrow_id": self.escrow_id,
             "payment_id": self.payment_id,
@@ -120,7 +130,7 @@ class EscrowManager:
 
     def __init__(self, ledger: LedgerEngine) -> None:
         self.ledger = ledger
-        self._holds: Dict[str, EscrowHold] = {}
+        self._holds: dict[str, EscrowHold] = {}
 
     def create_escrow_hold(
         self,
@@ -129,7 +139,7 @@ class EscrowManager:
         currency: Currency | str,
         split_rule: SplitRule,
         source_clearing_account: str = "asset:clearing:mtn_momo:ugx",
-        escrow_id: Optional[str] = None,
+        escrow_id: str | None = None,
     ) -> EscrowHold:
         """Lock customer payment in an immutable escrow liability account pending service verification."""
         curr = Currency(currency)
@@ -251,7 +261,7 @@ class EscrowManager:
         self,
         escrow_id: str,
         reason: str = "Marketplace gig dispute / task canceled",
-        refund_destination_account: Optional[str] = None,
+        refund_destination_account: str | None = None,
     ) -> EscrowHold:
         """Refund escrowed funds back to customer clearing / payable account."""
         hold = self._holds.get(escrow_id)
@@ -291,5 +301,5 @@ class EscrowManager:
         hold.resolved_at = datetime.now(timezone.utc).isoformat()
         return hold
 
-    def get_hold(self, escrow_id: str) -> Optional[EscrowHold]:
+    def get_hold(self, escrow_id: str) -> EscrowHold | None:
         return self._holds.get(escrow_id)
