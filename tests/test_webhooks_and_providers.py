@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from flowledger.ledger.models import Currency
-from flowledger.payments import PaymentOrchestrator, PaymentState
+from flowledger.payments import PaymentOrchestrator
 from flowledger.providers import (
     AirtelMoneySandboxAdapter,
     FailureInjectionSimulator,

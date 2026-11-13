@@ -7,7 +7,6 @@ import tempfile
 import pytest
 
 from flowledger.cli import main
-from flowledger.ledger.engine import LedgerEngine
 from flowledger.ledger.models import Currency
 from flowledger.payments.orchestrator import PaymentOrchestrator
 from flowledger.reconciliation.camt053 import Camt053ParseError, Camt053Parser

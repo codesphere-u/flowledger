@@ -7,7 +7,6 @@ import pytest
 from flowledger.ledger.engine import LedgerEngine, LedgerError
 from flowledger.ledger.models import Currency
 from flowledger.payments.split import (
-    EscrowHold,
     EscrowManager,
     EscrowStatus,
     SplitRecipient,

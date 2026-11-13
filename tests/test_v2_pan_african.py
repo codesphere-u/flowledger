@@ -8,7 +8,7 @@ import pytest
 from flowledger.compliance import SanctionsScreener, VelocityMonitor, jaro_winkler
 from flowledger.ledger.engine import LedgerEngine
 from flowledger.ledger.merkle import inclusion_proof, ledger_merkle_root, merkle_root, verify_inclusion
-from flowledger.ledger.models import AccountType, Currency, EntryDirection, LedgerPosting
+from flowledger.ledger.models import Currency, EntryDirection, LedgerPosting
 from flowledger.ledger.storage import SqliteLedgerStore, StorageIntegrityError
 from flowledger.payments.fx import FxEngine, FxError, QuoteConsumedError, QuoteExpiredError
 from flowledger.payments.offline_voucher import (
@@ -243,7 +243,7 @@ def test_sqlite_journal_is_append_only_and_tamper_detected(tmp_path):
     # bypass triggers to simulate on-disk tampering
     store._conn.execute("DROP TRIGGER journal_no_update")
     store._conn.execute("UPDATE journal SET postings=replace(postings,'1001','1002') WHERE seq=2")
-    with pytest.raises(Exception):
+    with pytest.raises(StorageIntegrityError):
         store.restore()
 
 

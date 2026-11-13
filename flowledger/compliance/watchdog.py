@@ -50,7 +50,7 @@ def jaro(a: str, b: str) -> float:
 def jaro_winkler(a: str, b: str, p: float = 0.1) -> float:
     j = jaro(a, b)
     prefix = 0
-    for x, y in zip(a[:4], b[:4]):
+    for x, y in zip(a[:4], b[:4], strict=False):
         if x != y:
             break
         prefix += 1

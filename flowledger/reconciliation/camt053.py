@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from flowledger.ledger.models import Currency, validate_minor_units
+from flowledger.ledger.models import Currency
 from flowledger.providers.sandbox import ProviderSettlementRecord
 
 
@@ -39,7 +39,7 @@ class Camt053Parser:
             raise Camt053ParseError(f"Invalid XML syntax in CAMT.053: {exc}") from exc
 
         records: List[ProviderSettlementRecord] = []
-        
+
         # Traverse statements
         # Handles both namespaced and non-namespaced XML
         for stmt_elem in root.iter():
