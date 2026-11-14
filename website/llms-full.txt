@@ -1,0 +1,8 @@
+# FlowLedger v2.1.0 — Complete Technical Reference
+
+FlowLedger (`flowledger`) is an MIT-licensed Pan-African Interledger Engine and immutable double-entry reconciliation system supporting 12 currencies (`UGX`, `KES`, `NGN`, `USD`, `GHS`, `ZAR`, `TZS`, `RWF`, `XOF`, `XAF`, `USDC`, `EURC`) in strict integer minor units with SQLite WAL persistence, SHA-256 hash chaining, RFC 6962 Merkle proofs, 12 MCP tools, and Nexus Aegis `G6_FINANCIAL_INTEGRITY`.
+
+## Verified Simulation (`flowledger demo`)
+- 50 transactions, 97 immutable journals, 108 accounts
+- Zero-Sum & Hash-Chain Invariant Check: `PASS (100% VALID)`
+- Net Imbalance: `0` across all 12 currencies

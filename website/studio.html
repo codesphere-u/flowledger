@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Double-Entry &amp; Aegis G6 Studio — FlowLedger</title>
+  <meta name="description" content="Simulate zero-sum double-entry ledger postings in integer minor units, provider fees, reconciliation deltas, and Nexus Aegis G6 leaves." />
+  <link rel="canonical" href="https://codesphere-u.github.io/flowledger/studio.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Double-Entry &amp; Aegis G6 Studio — FlowLedger" />
+  <meta property="og:description" content="Interactive minor-unit accounting and Nexus Aegis G6 RFC 6962 attestation simulator." />
+  <meta property="og:image" content="https://codesphere-u.github.io/flowledger/og-image.svg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-col">
+    <header class="site-header">
+      <a class="brand-mark" href="index.html">
+        <svg class="brand-mascot" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <rect width="64" height="64" rx="16" fill="#064e3b"/>
+          <path d="M16 24h32M16 40h32" stroke="#d1fae5" stroke-width="4" stroke-linecap="round"/>
+          <path d="M40 16l8 8-8 8M24 32l-8 8 8 8" stroke="#ca8a04" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg class="brand-wordmark-svg" width="196" height="36" viewBox="0 0 196 36" role="img" aria-label="FlowLedger">
+          <text x="98" y="27" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="25" font-weight="700" fill="#111c17">FlowLedger</text>
+        </svg>
+        <span class="sr-only">FlowLedger</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary Navigation">
+        <a href="index.html">Home</a>
+        <a href="studio.html" class="active">Studio</a>
+        <a href="proof.html">Audit Proof</a>
+        <a href="rules.html">Rails &amp; MCP</a>
+        <a href="docs.html">Docs</a>
+        <a href="https://github.com/codesphere-u/flowledger">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      <p class="hero-kicker">Interactive Simulator</p>
+      <h1 class="hero-title" style="font-size:2rem;">Double-Entry &amp; Reconciliation Studio</h1>
+      <p style="color:var(--muted);margin-bottom:20px;">Adjust integer minor-unit amounts and fee basis points to verify zero-sum balance and Nexus Aegis <code>G6_FINANCIAL_INTEGRITY</code> payloads.</p>
+
+      <div class="handy-card">
+        <div class="preset-bar">
+          <button type="button" class="preset-chip active" data-preset="mpesa_stk">M-Pesa STK (KES)</button>
+          <button type="button" class="preset-chip" data-preset="fx_corridor">UGX -&gt; KES FX Lock</button>
+          <button type="button" class="preset-chip" data-preset="fee_mismatch">3-Way Fee Discrepancy</button>
+        </div>
+
+        <div class="studio-grid">
+          <div>
+            <label class="field-label" for="studioAmount">Gross Amount (Minor Units)</label>
+            <input id="studioAmount" class="handy-input" type="number" min="100" step="100" value="15000" />
+          </div>
+          <div>
+            <label class="field-label" for="studioFeeBps">Provider Fee (Basis Points)</label>
+            <input id="studioFeeBps" class="handy-input" type="number" min="0" max="1000" step="5" value="150" />
+          </div>
+        </div>
+      </div>
+
+      <section class="handy-card soft">
+        <h2 style="font-family:Georgia,serif;margin:0 0 12px;font-size:1.25rem;">Balanced Journal Postings</h2>
+        <div id="studioOutput"></div>
+      </section>
+
+      <section class="handy-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+          <h2 style="font-family:Georgia,serif;margin:0;font-size:1.15rem;">Nexus Aegis <code>G6_FINANCIAL_INTEGRITY</code> Leaf</h2>
+          <button type="button" class="copy-mini" onclick="copyText(document.getElementById('studioAegisOut').textContent)">Copy JSON</button>
+        </div>
+        <pre id="studioAegisOut"></pre>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>FlowLedger v2.1.0 &middot; MIT License</span>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="proof.html">Audit Proof</a>
+        <a href="docs.html">Docs</a>
+      </div>
+    </footer>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

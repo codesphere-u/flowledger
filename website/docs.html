@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documentation — FlowLedger</title>
+  <meta name="description" content="Complete FlowLedger documentation covering double-entry minor-unit accounting, M-Pesa/MoMo rails, ISO 20022, 3-way reconciliation, and MCP tools." />
+  <link rel="canonical" href="https://codesphere-u.github.io/flowledger/docs.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Documentation — FlowLedger" />
+  <meta property="og:description" content="Developer reference for FlowLedger CLI, double-entry engine, FX quotes, and Nexus Aegis G6." />
+  <meta property="og:image" content="https://codesphere-u.github.io/flowledger/og-image.svg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="docs-layout">
+    <aside class="docs-sidebar">
+      <a class="docs-brand" href="index.html">
+        <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <rect width="64" height="64" rx="16" fill="#064e3b"/>
+          <path d="M16 24h32M16 40h32" stroke="#d1fae5" stroke-width="4" stroke-linecap="round"/>
+          <path d="M40 16l8 8-8 8" stroke="#ca8a04" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>FlowLedger</span>
+      </a>
+      <nav class="docs-nav" aria-label="Documentation Navigation">
+        <a href="index.html">Home</a>
+        <a href="studio.html">Studio</a>
+        <a href="proof.html">Audit Proof</a>
+        <a href="rules.html">Rails &amp; MCP</a>
+        <a href="docs.html" class="active">Docs</a>
+        <a href="https://github.com/codesphere-u/flowledger">GitHub</a>
+      </nav>
+      <div class="docs-rail-foot">v2.1.0 &middot; MIT License</div>
+    </aside>
+
+    <main class="docs-main">
+      <h1>FlowLedger Documentation</h1>
+      <p style="color:var(--muted);">Pan-African interledger engine, double-entry accounting, and ISO 20022 reconciliation.</p>
+
+      <nav class="doc-subrail" aria-label="Page Sections">
+        <a href="#install">Install</a>
+        <a href="#ledger">Double-Entry</a>
+        <a href="#rails">Mobile Money &amp; FX</a>
+        <a href="#iso">ISO 20022</a>
+        <a href="#mcp">MCP &amp; Aegis G6</a>
+      </nav>
+
+      <h2 id="install">1. Installation &amp; Quick Audit</h2>
+      <pre><code>git clone https://github.com/codesphere-u/flowledger.git
+cd flowledger
+pip install -e ".[dev]"
+flowledger demo
+flowledger verify-invariants</code></pre>
+
+      <h2 id="ledger">2. Integer Minor-Unit Double-Entry</h2>
+      <p>Every <code>JournalEntry</code> enforces integer minor units across 12 currencies and validates <code>Sum(Debits) == Sum(Credits)</code> before appending to the SHA-256 hash chain and SQLite WAL store.</p>
+
+      <h2 id="rails">3. Pan-African Rails &amp; Cross-Border FX</h2>
+      <p>Offline payload builders and parsers model Safaricom M-Pesa Daraja 2.0 (STK Push, C2B, B2C), MTN MoMo, Airtel Money, Wave, Orange Money, Tigo Pesa, and rate-locked FX quotes.</p>
+
+      <h2 id="iso">4. ISO 20022 &amp; 3-Way Reconciliation</h2>
+      <p>Generate and parse <code>pacs.008</code>, <code>pacs.002</code>, and <code>camt.053</code> XML statements and export CSV reconciliation and exception reports cleanly.</p>
+
+      <h2 id="mcp">5. MCP Server &amp; Nexus Aegis G6</h2>
+      <pre><code>flowledger mcp
+flowledger export-aegis</code></pre>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment Rails, Currencies &amp; MCP Rules — FlowLedger</title>
+  <meta name="description" content="Searchable reference of FlowLedger payment rails, 12 currencies, ISO 20022 formats, reconciliation exceptions, and MCP financial tools." />
+  <link rel="canonical" href="https://codesphere-u.github.io/flowledger/rules.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Payment Rails, Currencies &amp; MCP Rules — FlowLedger" />
+  <meta property="og:description" content="Complete reference of FlowLedger M-Pesa/MoMo rails, ISO 20022 schemas, and MCP tools." />
+  <meta property="og:image" content="https://codesphere-u.github.io/flowledger/og-image.svg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-col">
+    <header class="site-header">
+      <a class="brand-mark" href="index.html">
+        <svg class="brand-mascot" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <rect width="64" height="64" rx="16" fill="#064e3b"/>
+          <path d="M16 24h32M16 40h32" stroke="#d1fae5" stroke-width="4" stroke-linecap="round"/>
+          <path d="M40 16l8 8-8 8M24 32l-8 8 8 8" stroke="#ca8a04" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg class="brand-wordmark-svg" width="196" height="36" viewBox="0 0 196 36" role="img" aria-label="FlowLedger">
+          <text x="98" y="27" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="25" font-weight="700" fill="#111c17">FlowLedger</text>
+        </svg>
+        <span class="sr-only">FlowLedger</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary Navigation">
+        <a href="index.html">Home</a>
+        <a href="studio.html">Studio</a>
+        <a href="proof.html">Audit Proof</a>
+        <a href="rules.html" class="active">Rails &amp; MCP</a>
+        <a href="docs.html">Docs</a>
+        <a href="https://github.com/codesphere-u/flowledger">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      <p class="hero-kicker">Ledger &amp; Rail Catalog</p>
+      <h1 class="hero-title" style="font-size:2rem;">Payment Rails, ISO 20022 &amp; MCP Tools</h1>
+      <p id="rulesCount" style="color:var(--muted);margin-bottom:14px;"></p>
+
+      <div class="rules-filter">
+        <input id="rulesSearch" class="handy-input" style="flex:1 1 240px;" type="search" placeholder="Filter rails, currencies, MCP tools..." />
+        <select id="rulesCategory" class="handy-select" style="flex:0 0 190px;">
+          <option value="all">All Categories</option>
+          <option value="rail">Payment Rails (4)</option>
+          <option value="mcp">MCP Tools (4)</option>
+          <option value="audit">Compliance &amp; Recon (3)</option>
+        </select>
+      </div>
+
+      <article class="rule-card" data-rule-card data-cat="rail">
+        <span class="rule-id">RAIL &middot; M-PESA DARAJA 2.0</span>
+        <h2 style="font-size:1.05rem;margin:8px 0 4px;">Safaricom M-Pesa STK Push, C2B &amp; B2C</h2>
+        <p style="margin:0;font-size:0.9rem;color:var(--muted);">Offline spec-conformant builders/parsers enforcing whole-shilling rules on KES minor units.</p>
+      </article>
+      <article class="rule-card" data-rule-card data-cat="rail">
+        <span class="rule-id">RAIL &middot; REGIONAL MOBILE MONEY</span>
+        <h2 style="font-size:1.05rem;margin:8px 0 4px;">MTN MoMo, Airtel Money, Wave, Orange &amp; Tigo</h2>
+        <p style="margin:0;font-size:0.9rem;color:var(--muted);">Covers UGX, KES, NGN, GHS, ZAR, TZS, RWF, XOF, XAF, plus simulated USDC/EURC rails.</p>
+      </article>
+      <article class="rule-card" data-rule-card data-cat="rail">
+        <span class="rule-id">ISO 20022 &middot; pacs.008 / pacs.002 / camt.053</span>
+        <h2 style="font-size:1.05rem;margin:8px 0 4px;">Zero-Dependency XML Bank Messaging</h2>
+        <p style="margin:0;font-size:0.9rem;color:var(--muted);">Generates and parses ISO 20022 XML bank statements directly into exact integer minor units.</p>
+      </article>
+      <article class="rule-card" data-rule-card data-cat="rail">
+        <span class="rule-id">FX &middot; CROSS-BORDER QUOTES</span>
+        <h2 style="font-size:1.05rem;margin:8px 0 4px;">Single-Use Rate-Locked FX Engine</h2>
+        <p style="margin:0;font-size:0.9rem;color:var(--muted);">Executes cross-currency corridors via two balanced single-currency journals with explicit spread revenue.</p>
+      </article>
+
+      <article class="rule-card" data-rule-card data-cat="mcp">
+        <span class="rule-id">MCP &middot; flowledger_create_payment</span>
+        <h2 style="font-size:1.05rem;margin:8px 0 4px;">Idempotent Payment Orchestration</h2>
+        <p style="margin:0;font-size:0.9rem;color:var(--muted);">Creates payment intents guarded by SHA-256 idempotency digests and state-machine transitions.</p>
+      </article>
+      <article class="rule-card" data-rule-card data-cat="mcp">
+        <span class="rule-id">MCP &middot; flowledger_verify_ledger_invariants</span>
+        <h2 style="font-size:1.05rem;margin:8px 0 4px;">Zero-Sum &amp; SHA-256 Chain Verification</h2>
+        <p style="margin:0;font-size:0.9rem;color:var(--muted);">Verifies Sum(Debits) === Sum(Credits) and cryptographic hash chaining across all journals.</p>
+      </article>
+      <article class="rule-card" data-rule-card data-cat="mcp">
+        <span class="rule-id">MCP &middot; flowledger_run_reconciliation</span>
+        <h2 style="font-size:1.05rem;margin:8px 0 4px;">3-Way Settlement Reconciliation</h2>
+        <p style="margin:0;font-size:0.9rem;color:var(--muted);">Cross-checks intents, ledger postings, and provider statements, emitting adjustment proposals.</p>
+      </article>
+      <article class="rule-card" data-rule-card data-cat="mcp">
+        <span class="rule-id">MCP &middot; flowledger_export_aegis_g6</span>
+        <h2 style="font-size:1.05rem;margin:8px 0 4px;">Nexus Aegis G6 Financial Attestation</h2>
+        <p style="margin:0;font-size:0.9rem;color:var(--muted);">Produces RFC 6962 <code>0x00</code>-prefixed SHA-256 leaves alongside Merkle inclusion proofs.</p>
+      </article>
+
+      <article class="rule-card" data-rule-card data-cat="audit">
+        <span class="rule-id">COMPLIANCE &middot; SANCTIONS &amp; VELOCITY</span>
+        <h2 style="font-size:1.05rem;margin:8px 0 4px;">Jaro-Winkler Screening &amp; Structuring Monitor</h2>
+        <p style="margin:0;font-size:0.9rem;color:var(--muted);">Fuzzy name screening and sliding-window structuring/velocity detection.</p>
+      </article>
+      <article class="rule-card" data-rule-card data-cat="audit">
+        <span class="rule-id">OFFLINE &middot; HMAC VOUCHERS</span>
+        <h2 style="font-size:1.05rem;margin:8px 0 4px;">Signed Nonce-Protected Vouchers</h2>
+        <p style="margin:0;font-size:0.9rem;color:var(--muted);">HMAC-SHA256 offline vouchers with replay rejection and bulk settlement queue.</p>
+      </article>
+      <article class="rule-card" data-rule-card data-cat="audit">
+        <span class="rule-id">STORAGE &middot; SQLITE WAL + MERKLE</span>
+        <h2 style="font-size:1.05rem;margin:8px 0 4px;">Append-Only Durable Ledger Store</h2>
+        <p style="margin:0;font-size:0.9rem;color:var(--muted);">SQLite WAL persistence with append-only database triggers and hash-verified restore.</p>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <span>FlowLedger v2.1.0 &middot; MIT License</span>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="studio.html">Studio</a>
+        <a href="docs.html">Docs</a>
+      </div>
+    </footer>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

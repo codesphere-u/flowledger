@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FlowLedger — Pan-African Interledger &amp; Double-Entry Engine</title>
+  <meta name="description" content="Immutable double-entry accounting in integer minor units across 12 currencies, ISO 20022 pacs.008/camt.053, 3-way reconciliation, and 12 MCP tools." />
+  <link rel="canonical" href="https://codesphere-u.github.io/flowledger/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="FlowLedger v2.1.0 — Pan-African Interledger &amp; Reconciliation Engine" />
+  <meta property="og:description" content="Zero-sum integer minor-unit accounting across 12 currencies, Safaricom M-Pesa, MTN MoMo, ISO 20022, FX quotes, and Nexus Aegis G6." />
+  <meta property="og:url" content="https://codesphere-u.github.io/flowledger/" />
+  <meta property="og:image" content="https://codesphere-u.github.io/flowledger/og-image.svg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="FlowLedger v2.1.0 — Pan-African Interledger &amp; Reconciliation Engine" />
+  <meta name="twitter:description" content="Double-entry ledger, SHA-256 hash chain, RFC 6962 Merkle proofs, 3-way reconciliation, and 12 MCP tools." />
+  <meta name="twitter:image" content="https://codesphere-u.github.io/flowledger/og-image.svg" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://codesphere-u.github.io/#org",
+        "name": "Codesphere Innovations (U) Limited",
+        "url": "https://github.com/codesphere-u"
+      },
+      {
+        "@type": "Person",
+        "@id": "https://codesphere-u.github.io/#author",
+        "name": "Akandwanaho Ivan Alvin",
+        "worksFor": { "@id": "https://codesphere-u.github.io/#org" }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://codesphere-u.github.io/flowledger/#website",
+        "url": "https://codesphere-u.github.io/flowledger/",
+        "name": "FlowLedger",
+        "publisher": { "@id": "https://codesphere-u.github.io/#org" }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "FlowLedger",
+        "softwareVersion": "2.1.0",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "macOS, Linux, Windows",
+        "license": "https://opensource.org/licenses/MIT",
+        "url": "https://codesphere-u.github.io/flowledger/",
+        "codeRepository": "https://github.com/codesphere-u/flowledger",
+        "author": { "@id": "https://codesphere-u.github.io/#author" },
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "How does FlowLedger eliminate IEEE-754 floating-point rounding bugs?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Every LedgerPosting enforces strict integer minor units across 12 currencies and validates Sum(Debits) == Sum(Credits) prior to commit."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What mobile money and ISO 20022 rails are modeled?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "FlowLedger provides offline payload builders and parsers for Safaricom M-Pesa Daraja 2.0, MTN MoMo, Airtel Money, Wave, Orange Money, Tigo Pesa, plus ISO 20022 pacs.008, pacs.002, and camt.053."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+  <div class="page-col">
+    <header class="site-header">
+      <a class="brand-mark" href="index.html">
+        <svg class="brand-mascot" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <rect width="64" height="64" rx="16" fill="#064e3b"/>
+          <path d="M16 24h32M16 40h32" stroke="#d1fae5" stroke-width="4" stroke-linecap="round"/>
+          <path d="M40 16l8 8-8 8M24 32l-8 8 8 8" stroke="#ca8a04" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg class="brand-wordmark-svg" width="196" height="36" viewBox="0 0 196 36" role="img" aria-label="FlowLedger">
+          <text x="98" y="27" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="25" font-weight="700" fill="#111c17">FlowLedger</text>
+        </svg>
+        <span class="sr-only">FlowLedger</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary Navigation">
+        <a href="index.html" class="active">Home</a>
+        <a href="studio.html">Studio</a>
+        <a href="proof.html">Audit Proof</a>
+        <a href="rules.html">Rails &amp; MCP</a>
+        <a href="docs.html">Docs</a>
+        <a href="https://github.com/codesphere-u/flowledger">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      <section style="text-align:center;">
+        <p class="hero-kicker">v2.1.0 &middot; Pan-African Interledger</p>
+        <h1 class="hero-title">Zero-sum double-entry accounting across 12 currencies.</h1>
+        <p class="hero-lead">
+          Immutable integer minor-unit ledgers, M-Pesa &amp; MTN MoMo rail orchestrators, ISO 20022 <code>pacs.008</code>/<code>camt.053</code> reconciliation, offline HMAC vouchers, and 12 MCP tools.
+        </p>
+
+        <div class="hero-actions">
+          <div class="cta-wrap">
+            <button type="button" class="btn-primary" data-popover-toggle="installPopover">Install FlowLedger</button>
+            <div id="installPopover" class="cta-popover" role="dialog" aria-label="Install commands">
+              <p class="cta-popover-title">Quick Install &amp; Demo</p>
+              <div class="cmd-row">
+                <code>pip install -e ".[dev]"</code>
+                <button type="button" class="copy-mini" data-copy="pip install -e &quot;.[dev]&quot;">Copy</button>
+              </div>
+              <div class="cmd-row">
+                <code>flowledger demo</code>
+                <button type="button" class="copy-mini" data-copy="flowledger demo">Copy</button>
+              </div>
+              <div class="cmd-row">
+                <code>flowledger verify-invariants</code>
+                <button type="button" class="copy-mini" data-copy="flowledger verify-invariants">Copy</button>
+              </div>
+            </div>
+          </div>
+          <a class="btn-secondary" href="studio.html">Open Ledger Studio</a>
+          <a class="btn-secondary" href="docs.html">Read Docs</a>
+        </div>
+      </section>
+
+      <section class="flow-section">
+        <p class="section-label">Financial Invariants</p>
+        <h2 class="section-heading">Every posting balanced before commit</h2>
+        <div class="flow-grid">
+          <article class="flow-step">
+            <span class="step-num">1</span>
+            <h3>Idempotent State</h3>
+            <p>SHA-256 request digests replay safely on retry and reject mutated keys with HTTP 409.</p>
+          </article>
+          <article class="flow-step">
+            <span class="step-num">2</span>
+            <h3>Hash-Chained Ledger</h3>
+            <p>Tracks 12 currencies in integer minor units with SQLite WAL persistence and RFC 6962 Merkle proofs.</p>
+          </article>
+          <article class="flow-step">
+            <span class="step-num">3</span>
+            <h3>3-Way Reconciliation</h3>
+            <p>Matches intents, ledger entries, and provider statements, proposing balanced adjustment journals.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="flow-section">
+        <p class="section-label">Interactive Preview</p>
+        <h2 class="section-heading">Inspect double-entry &amp; FX journals</h2>
+        <div class="handy-card soft">
+          <label class="field-label" for="quickLedgerSelect">Choose settlement scenario</label>
+          <select id="quickLedgerSelect" class="handy-select" style="margin-bottom:14px;">
+            <option value="mpesa_stk">Safaricom M-Pesa STK Push Settlement (KES)</option>
+            <option value="fx_corridor">Cross-Border UGX -> KES FX Lock</option>
+            <option value="fee_mismatch">Airtel Money Fee Discrepancy + Recon</option>
+          </select>
+          <div id="quickLedgerOut"></div>
+          <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">
+            <a class="btn-primary btn-sm" href="studio.html">Launch Full Studio</a>
+            <a class="btn-secondary btn-sm" href="rules.html">Browse 12 MCP Tools</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="flow-section">
+        <p class="section-label">Verified Simulation (50 Transactions / 97 Journals)</p>
+        <h2 class="section-heading">Deterministic audit &amp; invariant checks</h2>
+        <div class="stat-grid">
+          <div class="stat-box">
+            <div class="stat-val">0</div>
+            <div class="stat-lbl">Minor-Unit Imbalance</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">12</div>
+            <div class="stat-lbl">Supported Currencies</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">12</div>
+            <div class="stat-lbl">MCP Financial Tools</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val">103/103</div>
+            <div class="stat-lbl">Invariant Tests Passed</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="flow-section">
+        <p class="section-label">Frequently Asked Questions</p>
+        <h2 class="section-heading">Ledger &amp; compliance details</h2>
+        <details class="faq-item">
+          <summary>Are provider adapters live or offline?</summary>
+          <p>All provider adapters (M-Pesa Daraja, MTN MoMo, Airtel Money, Wave, Orange Money, USDC/EURC) build and parse spec-conformant payloads offline with HMAC verification and failure injection.</p>
+        </details>
+        <details class="faq-item">
+          <summary>What does Nexus Aegis G6 export certify?</summary>
+          <p><code>flowledger_export_aegis_g6</code> emits canonical <code>G6_FINANCIAL_INTEGRITY</code> RFC 6962 SHA-256 Merkle leaves proving zero-sum ledger balance and chain continuity.</p>
+        </details>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>FlowLedger v2.1.0 &middot; MIT License &middot; Codesphere Innovations (U) Limited</span>
+      <div class="footer-links">
+        <a href="docs.html">Docs</a>
+        <a href="studio.html">Studio</a>
+        <a href="llms.txt">llms.txt</a>
+        <a href="https://github.com/codesphere-u/flowledger/releases/tag/v2.1.0">Release v2.1.0</a>
+      </div>
+    </footer>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script defer data-domain="codesphere-u.github.io" src="https://plausible.io/js/script.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

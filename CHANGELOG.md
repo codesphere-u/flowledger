@@ -2,6 +2,17 @@
 
 All notable changes to **FlowLedger** are documented in this file.
 
+## [2.1.0] - 2026-11-14
+
+### Added
+- **Editorial Website & Interactive Interledger Studio (`website/`)**:
+  - Multi-page Warm Ivory (`#fffdf2`) editorial website with Emerald Sovereign (`#047857`) and Ledger Gold (`#ca8a04`) accents across `index.html`, `studio.html`, `proof.html`, `rules.html`, and `docs.html`.
+  - Interactive `studio.html` simulator for integer minor-unit double-entry zero-sum verification (`∑Debits === ∑Credits`), cross-border FX spread quotes, ISO 20022 `pacs.008` / `camt.053`, 3-way reconciliation exceptions, and Nexus Aegis `G6_FINANCIAL_INTEGRITY` RFC 6962 leaf export.
+  - Full SEO/GEO suite (`llms.txt`, `llms-full.txt`, `robots.txt`, `sitemap.xml`, `manifest.webmanifest`, Schema.org `@graph` JSON-LD, and `website/marketing/` playbooks).
+- **Documentation, Pages & Verification**:
+  - Added `docs/GETTING_STARTED.md`, `docs/RAILS_ISO20022_AND_AEGIS.md`, `.github/workflows/pages.yml`, and `tests/test_website_and_docs.py`.
+  - Bumped package, FastAPI, and MCP server version to `2.1.0`.
+
 ## [2.0.0] - 2026-11-09
 
 ### Added

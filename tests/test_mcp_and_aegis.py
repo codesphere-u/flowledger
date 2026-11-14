@@ -62,7 +62,7 @@ def test_mcp_server_initialize_ping_and_tools_list() -> None:
 
     init_resp = server.handle_request({"jsonrpc": "2.0", "id": 1, "method": "initialize"})
     assert init_resp["result"]["serverInfo"]["name"] == "flowledger-mcp"
-    assert init_resp["result"]["serverInfo"]["version"] == "2.0.0"
+    assert init_resp["result"]["serverInfo"]["version"] == "2.1.0"
 
     ping_resp = server.handle_request({"jsonrpc": "2.0", "id": 2, "method": "ping"})
     assert ping_resp["result"]["status"] == "pong"

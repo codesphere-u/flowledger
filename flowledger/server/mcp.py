@@ -187,7 +187,7 @@ class FlowLedgerMCPServer:
                     req_id,
                     {
                         "protocolVersion": "2024-11-05",
-                        "serverInfo": {"name": "flowledger-mcp", "version": "2.0.0"},
+                        "serverInfo": {"name": "flowledger-mcp", "version": "2.1.0"},
                         "capabilities": {"tools": {"listChanged": False}},
                     },
                 )

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Audit Proof &amp; Benchmarks — FlowLedger</title>
+  <meta name="description" content="Reproducible 50-transaction, 97-journal FlowLedger demo showing 0 minor-unit imbalance, 94% match rate, and 103 passing tests." />
+  <link rel="canonical" href="https://codesphere-u.github.io/flowledger/proof.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Audit Proof &amp; Benchmarks — FlowLedger" />
+  <meta property="og:description" content="Observed trial balance, SHA-256 audit chain head hash, and 3-way reconciliation results." />
+  <meta property="og:image" content="https://codesphere-u.github.io/flowledger/og-image.svg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-col">
+    <header class="site-header">
+      <a class="brand-mark" href="index.html">
+        <svg class="brand-mascot" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <rect width="64" height="64" rx="16" fill="#064e3b"/>
+          <path d="M16 24h32M16 40h32" stroke="#d1fae5" stroke-width="4" stroke-linecap="round"/>
+          <path d="M40 16l8 8-8 8M24 32l-8 8 8 8" stroke="#ca8a04" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg class="brand-wordmark-svg" width="196" height="36" viewBox="0 0 196 36" role="img" aria-label="FlowLedger">
+          <text x="98" y="27" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="25" font-weight="700" fill="#111c17">FlowLedger</text>
+        </svg>
+        <span class="sr-only">FlowLedger</span>
+      </a>
+      <nav class="site-nav" aria-label="Primary Navigation">
+        <a href="index.html">Home</a>
+        <a href="studio.html">Studio</a>
+        <a href="proof.html" class="active">Audit Proof</a>
+        <a href="rules.html">Rails &amp; MCP</a>
+        <a href="docs.html">Docs</a>
+        <a href="https://github.com/codesphere-u/flowledger">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      <p class="hero-kicker">Reproducible Evidence</p>
+      <h1 class="hero-title" style="font-size:2rem;">50-Transaction East African Mobile Money Audit</h1>
+      <p style="color:var(--muted);margin-bottom:20px;">Measured directly via <code>flowledger demo</code> across <code>97</code> immutable journals and <code>108</code> ledger accounts.</p>
+
+      <div class="handy-card">
+        <table>
+          <thead><tr><th>Audit Dimension</th><th>Observed Value</th></tr></thead>
+          <tbody>
+            <tr><td>Synthetic Transactions</td><td>50 executed</td></tr>
+            <tr><td>Immutable Double-Entry Journals</td><td>97 committed</td></tr>
+            <tr><td>Zero-Sum &amp; Hash-Chain Check</td><td>PASS (100% VALID)</td></tr>
+            <tr><td>KES Trial Balance</td><td>35,750 Debits == 35,750 Credits (0 Imbalance)</td></tr>
+            <tr><td>UGX Trial Balance</td><td>3,510,000 Debits == 3,510,000 Credits (0 Imbalance)</td></tr>
+            <tr><td>3-Way Matched Share</td><td>47 MATCHED (94.0%), 3 Exceptions Flagged</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="handy-card soft">
+        <h2 style="font-family:Georgia,serif;margin:0 0 10px;font-size:1.2rem;">Run Locally</h2>
+        <pre><code>flowledger demo
+flowledger verify-invariants
+flowledger export-aegis</code></pre>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <span>FlowLedger v2.1.0 &middot; MIT License</span>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="studio.html">Studio</a>
+        <a href="docs.html">Docs</a>
+      </div>
+    </footer>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -71,9 +71,11 @@ class SqliteLedgerStore:
     def restore(self) -> LedgerEngine:
         """Rebuild a LedgerEngine by replaying the journal; verify every stored hash is reproduced."""
         engine = LedgerEngine()
-        for aid, name, atype, cur in self._conn.execute("SELECT * FROM accounts"):
+        accounts_rows = self._conn.execute("SELECT * FROM accounts").fetchall()
+        for aid, name, atype, cur in accounts_rows:
             engine.create_account(aid, name, atype, cur)
-        for row in self._conn.execute("SELECT * FROM journal ORDER BY seq"):
+        journal_rows = self._conn.execute("SELECT * FROM journal ORDER BY seq").fetchall()
+        for row in journal_rows:
             _, entry_id, ref, desc, cur, postings, ts, prev_hash, entry_hash, meta = row
             entry = engine.record_journal_entry(
                 reference=ref, description=desc, currency=Currency(cur),

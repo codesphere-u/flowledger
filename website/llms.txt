@@ -1,0 +1,11 @@
+# FlowLedger
+
+> Pan-African payment orchestration, immutable integer minor-unit double-entry accounting across 12 currencies, ISO 20022 pacs.008/pacs.002/camt.053 reconciliation, offline HMAC vouchers, and Nexus Aegis G6.
+
+- Website: https://codesphere-u.github.io/flowledger/
+- Studio: https://codesphere-u.github.io/flowledger/studio.html
+- Audit Proof: https://codesphere-u.github.io/flowledger/proof.html
+- Rails & MCP: https://codesphere-u.github.io/flowledger/rules.html
+- Docs: https://codesphere-u.github.io/flowledger/docs.html
+- Source Code: https://github.com/codesphere-u/flowledger
+- Full Context: https://codesphere-u.github.io/flowledger/llms-full.txt

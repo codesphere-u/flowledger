@@ -656,7 +656,7 @@ def create_app(*, bootstrap_demo: bool = True, max_body_bytes: int | None = None
 
     app = FastAPI(
         title="FlowLedger API",
-        version="2.0.0",
+        version="2.1.0",
         description="African Payment Orchestration & Immutable Double-Entry Reconciliation Engine",
         lifespan=_lifespan,
     )
@@ -684,7 +684,7 @@ def create_app(*, bootstrap_demo: bool = True, max_body_bytes: int | None = None
         inv = orch.ledger.verify_invariants()
         payload = {
             "status": "ok" if inv.is_valid else "degraded",
-            "version": "2.0.0",
+            "version": "2.1.0",
             "invariants_valid": inv.is_valid,
             "journal_count": inv.journal_count,
             "head_hash": inv.head_hash,

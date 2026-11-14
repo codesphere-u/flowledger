@@ -7,8 +7,8 @@ authors:
     affiliation: "Codesphere Innovations (U) Limited"
 title: "FlowLedger"
 abstract: "Multi-Rail ISO 20022 Financial Settlement Engine and Double-Entry Core Ledger"
-version: "1.0.0"
-date-released: 2026-11-10
-url: "https://github.com/codesphere-u/flowledger"
+version: "2.1.0"
+date-released: 2026-11-14
+url: "https://codesphere-u.github.io/flowledger/"
 repository-code: "https://github.com/codesphere-u/flowledger"
 license: "MIT"

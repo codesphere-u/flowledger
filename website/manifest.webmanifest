@@ -1,0 +1,11 @@
+{
+  "name": "FlowLedger — Pan-African Payment Orchestration & Double-Entry Ledger",
+  "short_name": "FlowLedger",
+  "description": "Immutable double-entry accounting in integer minor units across 12 currencies, ISO 20022 pacs.008/camt.053, 3-way reconciliation, and Nexus Aegis G6.",
+  "start_url": "/flowledger/",
+  "scope": "/flowledger/",
+  "display": "standalone",
+  "background_color": "#fffdf2",
+  "theme_color": "#047857",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

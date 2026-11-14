@@ -1,7 +1,10 @@
 # FlowLedger
 
 [![CI](https://github.com/codesphere-u/flowledger/actions/workflows/ci.yml/badge.svg)](https://github.com/codesphere-u/flowledger/actions/workflows/ci.yml)
-[![Release v2.0.0](https://img.shields.io/badge/release-v2.0.0-blue.svg)](https://github.com/codesphere-u/flowledger/releases/tag/v2.0.0)
+[![Release v2.1.0](https://img.shields.io/badge/release-v2.1.0-047857.svg)](https://github.com/codesphere-u/flowledger/releases/tag/v2.1.0)
+[![Website](https://img.shields.io/badge/website-codesphere--u.github.io%2Fflowledger-047857.svg)](https://codesphere-u.github.io/flowledger/)
+
+> **Live Website & Interledger Studio:** [codesphere-u.github.io/flowledger](https://codesphere-u.github.io/flowledger/) | **Docs:** [Getting Started](docs/GETTING_STARTED.md) &middot; [Rails, ISO 20022 & Aegis G6](docs/RAILS_ISO20022_AND_AEGIS.md)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-14b8a6.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
 [![Double-Entry Invariants](https://img.shields.io/badge/Ledger-Zero--Sum%20%2B%20SHA--256%20Chained-0d9488)](docs/architecture.md)
